@@ -1,0 +1,109 @@
+import React, { useState } from 'react';
+import { Search, MessageSquare, Bell, CheckCircle, Clock } from 'lucide-react';
+import { NotificationItem } from '../types';
+
+interface HeaderProps {
+  notifications: NotificationItem[];
+  onMarkRead: (id: number) => void;
+  onOpenQuickSearch: () => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({ notifications, onMarkRead, onOpenQuickSearch }) => {
+  const [showNotifMenu, setShowNotifMenu] = useState(false);
+  const unreadCount = notifications.filter((n) => !n.IsRead).length;
+
+  return (
+    <header className="h-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 px-8 flex items-center justify-between sticky top-0 z-30 transition-colors">
+      {/* Search Bar matching Sage design */}
+      <div className="flex-1 max-w-xl">
+        <button
+          onClick={onOpenQuickSearch}
+          className="w-full bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-2.5 flex items-center justify-between text-slate-400 text-sm transition-all shadow-xs"
+        >
+          <div className="flex items-center gap-3">
+            <Search className="w-4 h-4 text-slate-400" />
+            <span>Search anything (Meetings, Visitors, Rooms)...</span>
+          </div>
+          <div className="flex items-center gap-1 bg-white dark:bg-slate-700 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-600 text-xs font-semibold text-slate-500 dark:text-slate-300">
+            <span>⌘</span>
+            <span>+</span>
+            <span>S</span>
+            <span className="text-[10px] ml-1 font-normal text-slate-400">Quick search</span>
+          </div>
+        </button>
+      </div>
+
+      {/* Right User & Actions */}
+      <div className="flex items-center gap-4">
+        <button className="p-2.5 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+          <MessageSquare className="w-5 h-5" />
+        </button>
+
+        {/* Notifications Dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => setShowNotifMenu(!showNotifMenu)}
+            className="p-2.5 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all relative"
+          >
+            <Bell className="w-5 h-5" />
+            {unreadCount > 0 && (
+              <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white dark:ring-slate-900" />
+            )}
+          </button>
+
+          {showNotifMenu && (
+            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 p-4 z-50 animate-in fade-in slide-in-from-top-2">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <h3 className="font-semibold text-slate-900 dark:text-white text-sm">Notifications</h3>
+                <span className="text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-full font-medium">
+                  {unreadCount} unread
+                </span>
+              </div>
+
+              <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-72 overflow-y-auto mt-2">
+                {notifications.length === 0 ? (
+                  <p className="text-xs text-slate-400 py-6 text-center">No new notifications</p>
+                ) : (
+                  notifications.map((n) => (
+                    <div
+                      key={n.NotificationId}
+                      onClick={() => onMarkRead(n.NotificationId)}
+                      className={`py-3 px-2 flex items-start gap-3 rounded-xl cursor-pointer transition-colors ${
+                        !n.IsRead ? 'bg-blue-50/50 dark:bg-blue-900/10' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                      }`}
+                    >
+                      <div className="p-2 rounded-xl bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 shrink-0">
+                        {n.NotificationType === 'VisitorArrival' ? (
+                          <CheckCircle className="w-4 h-4 text-emerald-500" />
+                        ) : (
+                          <Clock className="w-4 h-4 text-blue-500" />
+                        )}
+                      </div>
+                      <div className="flex-1 text-xs">
+                        <div className="font-semibold text-slate-800 dark:text-slate-200">{n.Title}</div>
+                        <p className="text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">{n.Message}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* User Profile Pill matching Sage mockup */}
+        <div className="flex items-center gap-3 pl-3 border-l border-slate-200 dark:border-slate-800">
+          <img
+            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"
+            alt="Washi Mazumder"
+            className="w-10 h-10 rounded-full object-cover ring-2 ring-blue-500/20 shadow-xs"
+          />
+          <div className="hidden sm:block text-left">
+            <div className="text-sm font-semibold text-slate-900 dark:text-white leading-tight">Washi Mazumder</div>
+            <div className="text-xs text-slate-400">Lead Product Manager</div>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+};
