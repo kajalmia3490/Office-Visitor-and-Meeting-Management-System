@@ -311,15 +311,15 @@ export function App() {
   );
 
   return (
-    <div className="flex min-h-screen bg-[#f8fafc] dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 transition-colors duration-200">
-      {/* Sidebar */}
+    <div className="flex h-screen overflow-hidden bg-[#f8fafc] dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 transition-colors duration-200">
+      {/* Fixed Sidebar */}
       <Sidebar
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
       />
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      {/* Main Content Area (Independent Scrollable Container) */}
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         <Header
           notifications={notifications}
           onMarkRead={handleMarkRead}
@@ -328,7 +328,7 @@ export function App() {
           onToggleTheme={() => setIsDark(!isDark)}
         />
 
-        <main className={`flex-1 w-full ${currentTab === 'dashboard' ? 'p-0' : 'p-6 sm:p-8 max-w-7xl mx-auto'}`}>
+        <main className={`flex-1 w-full overflow-y-auto ${currentTab === 'dashboard' ? 'p-0' : 'p-6 sm:p-8 max-w-7xl mx-auto'}`}>
           {currentTab === 'dashboard' && renderDashboard()}
           {currentTab === 'calendar' && (
             <CalendarView
