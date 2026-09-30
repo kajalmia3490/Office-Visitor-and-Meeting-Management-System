@@ -232,8 +232,6 @@ export function App() {
       <Sidebar
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
-        isDark={isDark}
-        setIsDark={setIsDark}
       />
 
       {/* Main Content Area */}
@@ -242,6 +240,8 @@ export function App() {
           notifications={notifications}
           onMarkRead={handleMarkRead}
           onOpenQuickSearch={() => setIsQuickSearchOpen(true)}
+          isDark={isDark}
+          onToggleTheme={() => setIsDark(!isDark)}
         />
 
         <main className="flex-1 p-6 sm:p-8 max-w-7xl w-full mx-auto">
@@ -272,7 +272,7 @@ export function App() {
         </main>
       </div>
 
-      {/* Schedule Meeting Modal */}
+      {/* Schedule Meeting Drawer */}
       <CreateMeetingModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}

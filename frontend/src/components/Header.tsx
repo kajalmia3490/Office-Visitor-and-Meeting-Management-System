@@ -1,16 +1,49 @@
-import React, { useState } from 'react';
-import { Search, MessageSquare, Bell, CheckCircle, Clock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Bell, Sun, Moon, Clock, CheckCircle } from 'lucide-react';
 import { NotificationItem } from '../types';
 
 interface HeaderProps {
   notifications: NotificationItem[];
   onMarkRead: (id: number) => void;
   onOpenQuickSearch: () => void;
+  isDark: boolean;
+  onToggleTheme: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ notifications, onMarkRead, onOpenQuickSearch }) => {
+export const Header: React.FC<HeaderProps> = ({ 
+  notifications, 
+  onMarkRead, 
+  onOpenQuickSearch,
+  isDark,
+  onToggleTheme
+}) => {
   const [showNotifMenu, setShowNotifMenu] = useState(false);
+  const [currentTime, setCurrentTime] = useState<Date>(new Date());
   const unreadCount = notifications.filter((n) => !n.IsRead).length;
+
+  // Real-time ticking clock
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Format Date: e.g. "Wed, 30 Sep 2026"
+  const formattedDate = currentTime.toLocaleDateString('en-GB', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  });
+
+  // Format Time: e.g. "10:09:45 PM"
+  const formattedTime = currentTime.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
 
   return (
     <header className="h-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 px-8 flex items-center justify-between sticky top-0 z-30 transition-colors">
@@ -33,21 +66,41 @@ export const Header: React.FC<HeaderProps> = ({ notifications, onMarkRead, onOpe
         </button>
       </div>
 
-      {/* Right User & Actions */}
-      <div className="flex items-center gap-4">
-        <button className="p-2.5 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
-          <MessageSquare className="w-5 h-5" />
+      {/* Right Controls: Live Date/Time, Theme Switcher Icon, Notification, Profile */}
+      <div className="flex items-center gap-3">
+        {/* Live Date and Time Pill (Clean, No background, No border) */}
+        <div className="hidden lg:flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-slate-300">
+          <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400 animate-pulse" />
+          <span className="text-slate-500 dark:text-slate-400">{formattedDate}</span>
+          <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
+          <span className="font-mono font-semibold text-slate-900 dark:text-white tracking-wide">{formattedTime}</span>
+        </div>
+
+        {/* Icon-Only Theme Toggle (No text) */}
+        <button
+          onClick={onToggleTheme}
+          aria-label="Toggle Theme"
+          title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          className="p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all shadow-2xs active:scale-95"
+        >
+          {isDark ? (
+            <Sun className="w-5 h-5 text-amber-400 hover:rotate-45 transition-transform" />
+          ) : (
+            <Moon className="w-5 h-5 text-slate-700 hover:-rotate-12 transition-transform" />
+          )}
         </button>
 
         {/* Notifications Dropdown */}
         <div className="relative">
           <button
             onClick={() => setShowNotifMenu(!showNotifMenu)}
-            className="p-2.5 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all relative"
+            aria-label="Notifications"
+            title="Notifications"
+            className="p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all shadow-2xs relative active:scale-95"
           >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
-              <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white dark:ring-slate-900" />
+              <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-rose-500 rounded-full ring-2 ring-white dark:ring-slate-900 animate-pulse" />
             )}
           </button>
 
