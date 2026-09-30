@@ -150,6 +150,92 @@ export function App() {
         </div>
       </div>
 
+      {/* Middle Section: Visualizations / Charts (Visitor Trends, Room Utilization, Status Breakdown) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200 dark:divide-slate-800 border-b border-slate-200 dark:border-slate-800">
+        {/* Chart 1: Weekly Visitor & Meeting Volume Bar Chart (7 cols) */}
+        <div className="lg:col-span-7 p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Weekly Visitor & Meeting Traffic</h3>
+              <p className="text-xs text-slate-400">Total volume of scheduled meetings vs checked-in visitors across 7 days</p>
+            </div>
+            <div className="flex items-center gap-3 text-xs">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />
+                <span className="text-slate-600 dark:text-slate-300 font-medium">Meetings</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                <span className="text-slate-600 dark:text-slate-300 font-medium">Visitors</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Bar Visualization */}
+          <div className="pt-4 flex items-end justify-between gap-3 h-44 border-b border-slate-100 dark:border-slate-800 pb-2">
+            {[
+              { day: 'Mon', meetings: 40, visitors: 30, mCount: 4, vCount: 3 },
+              { day: 'Tue', meetings: 65, visitors: 55, mCount: 7, vCount: 6 },
+              { day: 'Wed', meetings: 90, visitors: 80, mCount: 9, vCount: 8 },
+              { day: 'Thu', meetings: 75, visitors: 65, mCount: 8, vCount: 7 },
+              { day: 'Fri', meetings: 85, visitors: 95, mCount: 9, vCount: 10 },
+              { day: 'Sat', meetings: 30, visitors: 20, mCount: 3, vCount: 2 },
+              { day: 'Sun', meetings: 15, visitors: 10, mCount: 1, vCount: 1 },
+            ].map((bar) => (
+              <div key={bar.day} className="flex-1 flex flex-col items-center gap-2 h-full justify-end group">
+                <div className="w-full flex items-end justify-center gap-1.5 h-full">
+                  {/* Meeting Bar */}
+                  <div
+                    style={{ height: `${bar.meetings}%` }}
+                    className="w-full max-w-[14px] bg-blue-600 dark:bg-blue-500 rounded-t-sm transition-all group-hover:opacity-85 relative"
+                    title={`Meetings: ${bar.mCount}`}
+                  />
+                  {/* Visitor Bar */}
+                  <div
+                    style={{ height: `${bar.visitors}%` }}
+                    className="w-full max-w-[14px] bg-emerald-500 dark:bg-emerald-400 rounded-t-sm transition-all group-hover:opacity-85 relative"
+                    title={`Visitors: ${bar.vCount}`}
+                  />
+                </div>
+                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{bar.day}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Chart 2: Room Occupancy & Status Progress Breakdown (5 cols) */}
+        <div className="lg:col-span-5 p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Room Capacity & Utilization</h3>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+              Live Feed
+            </span>
+          </div>
+
+          <div className="space-y-3.5 pt-1">
+            {[
+              { room: 'Zoom Innovation Lab', percent: 75, status: 'In Use (9/12)', color: 'bg-blue-600' },
+              { room: 'Boardroom 775', percent: 85, status: 'In Use (17/20)', color: 'bg-indigo-600' },
+              { room: 'Creative UI Studio', percent: 40, status: 'Available (3/8)', color: 'bg-emerald-500' },
+              { room: 'Focus Room A', percent: 25, status: 'Available (1/4)', color: 'bg-amber-500' },
+            ].map((item) => (
+              <div key={item.room} className="space-y-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-slate-800 dark:text-slate-200">{item.room}</span>
+                  <span className="text-slate-400 text-[11px] font-medium">{item.status}</span>
+                </div>
+                <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div
+                    style={{ width: `${item.percent}%` }}
+                    className={`h-full ${item.color} rounded-full transition-all duration-500`}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Main Content: Agenda and Scope connected directly underneath */}
       <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200 dark:divide-slate-800">
         {/* Left Column: Today's Agenda & Meetings */}
