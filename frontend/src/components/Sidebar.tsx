@@ -34,12 +34,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, setCurrentTab }) =
   return (
     <aside className="w-64 min-h-screen bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800 flex flex-col justify-between p-4 select-none shrink-0 transition-colors duration-200">
       <div>
-        {/* Brand Logo matching Sage template */}
+        {/* Brand Logo matching TinyOffice */}
         <div className="flex items-center gap-2.5 px-3 py-4 mb-4">
           <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-xl shadow-md shadow-blue-500/20">
-            S
+            T
           </div>
-          <span className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Sage</span>
+          <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">TinyOffice</span>
         </div>
 
         {/* Navigation Menu */}

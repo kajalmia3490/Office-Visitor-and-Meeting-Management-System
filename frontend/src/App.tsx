@@ -203,7 +203,7 @@ export function App() {
               </li>
               <li className="flex items-center gap-2.5 text-emerald-600 dark:text-emerald-400 font-medium">
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
-                <span>3. MS SQL Server Database & Sage UI</span>
+                <span>3. MS SQL Server Database & TinyOffice UI</span>
               </li>
               <li className="flex items-center gap-2.5 text-emerald-600 dark:text-emerald-400 font-medium">
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
@@ -263,7 +263,7 @@ export function App() {
               <FileText className="w-12 h-12 text-blue-500 mx-auto mb-3 opacity-80" />
               <h3 className="text-lg font-bold text-slate-900 dark:text-white capitalize">{currentTab.replace('_', ' ')} Module</h3>
               <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-                Configured for Sage Enterprise. Use the Calendar and Visitors Desk for core workflow actions.
+                Configured for TinyOffice Enterprise. Use the Calendar and Visitors Desk for core workflow actions.
               </p>
             </div>
           )}

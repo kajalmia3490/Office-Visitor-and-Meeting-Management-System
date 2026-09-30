@@ -139,7 +139,7 @@ export const FastCheckInView: React.FC = () => {
               </div>
 
               <div className="flex items-center justify-between mb-4">
-                <div className="text-xs tracking-widest uppercase font-bold text-blue-400">Sage Office Pass</div>
+                <div className="text-xs tracking-widest uppercase font-bold text-blue-400">TinyOffice Pass</div>
                 <div className="text-xs bg-white/10 px-2 py-0.5 rounded font-mono">{badgeNumber || 'BDG-001'}</div>
               </div>
 
