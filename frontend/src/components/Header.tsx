@@ -47,21 +47,17 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="h-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 px-8 flex items-center justify-between sticky top-0 z-30 transition-colors">
-      {/* Search Bar matching Sage design */}
-      <div className="flex-1 max-w-xl">
+      {/* Compact Search Button (Expands to full search on click) */}
+      <div className="flex items-center">
         <button
           onClick={onOpenQuickSearch}
-          className="w-full bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-2.5 flex items-center justify-between text-slate-400 text-sm transition-all shadow-xs"
+          aria-label="Quick Search"
+          title="Search (⌘ + S)"
+          className="p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all shadow-2xs flex items-center gap-2 group active:scale-95"
         >
-          <div className="flex items-center gap-3">
-            <Search className="w-4 h-4 text-slate-400" />
-            <span>Search anything (Meetings, Visitors, Rooms)...</span>
-          </div>
-          <div className="flex items-center gap-1 bg-white dark:bg-slate-700 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-600 text-xs font-semibold text-slate-500 dark:text-slate-300">
-            <span>⌘</span>
-            <span>+</span>
-            <span>S</span>
-            <span className="text-[10px] ml-1 font-normal text-slate-400">Quick search</span>
+          <Search className="w-5 h-5 text-slate-500 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
+          <div className="hidden sm:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-[10px] font-semibold text-slate-400">
+            <span>⌘S</span>
           </div>
         </button>
       </div>
