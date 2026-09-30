@@ -47,13 +47,13 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="h-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 px-8 flex items-center justify-between sticky top-0 z-30 transition-colors">
-      {/* Compact Search Button (Expands to full search on click) */}
+      {/* Compact Search Button (Clean, No border) */}
       <div className="flex items-center">
         <button
           onClick={onOpenQuickSearch}
           aria-label="Quick Search"
           title="Search (⌘ + S)"
-          className="p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all shadow-2xs flex items-center gap-2 group active:scale-95"
+          className="p-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all flex items-center gap-2 group active:scale-95"
         >
           <Search className="w-5 h-5 text-slate-500 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
           <div className="hidden sm:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-[10px] font-semibold text-slate-400">
@@ -63,36 +63,36 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Right Controls: Live Date/Time, Theme Switcher Icon, Notification, Profile */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         {/* Live Date and Time Pill (Clean, No background, No border) */}
-        <div className="hidden lg:flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-slate-300">
+        <div className="hidden lg:flex items-center gap-2 mr-2 text-xs font-medium text-slate-700 dark:text-slate-300">
           <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400 animate-pulse" />
           <span className="text-slate-500 dark:text-slate-400">{formattedDate}</span>
           <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
           <span className="font-mono font-semibold text-slate-900 dark:text-white tracking-wide">{formattedTime}</span>
         </div>
 
-        {/* Icon-Only Theme Toggle (No text) */}
+        {/* Icon-Only Theme Toggle (Clean, No border, No shadow) */}
         <button
           onClick={onToggleTheme}
           aria-label="Toggle Theme"
           title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-          className="p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all shadow-2xs active:scale-95"
+          className="p-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all active:scale-95"
         >
           {isDark ? (
             <Sun className="w-5 h-5 text-amber-400 hover:rotate-45 transition-transform" />
           ) : (
-            <Moon className="w-5 h-5 text-slate-700 hover:-rotate-12 transition-transform" />
+            <Moon className="w-5 h-5 text-slate-700 dark:text-slate-300 hover:-rotate-12 transition-transform" />
           )}
         </button>
 
-        {/* Notifications Dropdown */}
+        {/* Notifications Dropdown (Clean, No border, No shadow) */}
         <div className="relative">
           <button
             onClick={() => setShowNotifMenu(!showNotifMenu)}
             aria-label="Notifications"
             title="Notifications"
-            className="p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all shadow-2xs relative active:scale-95"
+            className="p-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all relative active:scale-95"
           >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
