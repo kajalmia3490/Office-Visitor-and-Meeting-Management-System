@@ -11,7 +11,12 @@ const router = Router();
 
 const { ADMIN, RECEPTIONIST, SECURITY } = ROLES;
 
-router.post("/", authorize(ADMIN, RECEPTIONIST), validate(schemas.issuePassSchema), asyncHandler(controller.issue));
+router.post(
+  "/",
+  authorize(ADMIN, RECEPTIONIST),
+  validate(schemas.issuePassSchema),
+  asyncHandler(controller.issue),
+);
 
 router.get(
   "/verify/:passNumber",

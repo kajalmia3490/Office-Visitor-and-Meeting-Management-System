@@ -12,7 +12,10 @@ import visitRoutes from "../modules/visits/visit.routes.js";
 import notificationRoutes from "../modules/notifications/notification.routes.js";
 import visitorPassRoutes from "../modules/visitorPasses/visitorPass.routes.js";
 import auditLogRoutes from "../modules/auditLogs/auditLog.routes.js";
-import { dashboardRouter, reportRouter } from "../modules/reports/report.routes.js";
+import {
+  dashboardRouter,
+  reportRouter,
+} from "../modules/reports/report.routes.js";
 
 const router = Router();
 

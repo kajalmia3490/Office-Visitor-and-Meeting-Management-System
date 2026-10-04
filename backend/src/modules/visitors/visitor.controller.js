@@ -1,11 +1,19 @@
 import * as service from "./visitor.service.js";
 import { getPagination } from "../../utils/pagination.js";
-import { sendCreated, sendNoContent, sendSuccess } from "../../utils/response.js";
+import {
+  sendCreated,
+  sendNoContent,
+  sendSuccess,
+} from "../../utils/response.js";
 
-const serializeAll = (visitors, user) => visitors.map((v) => service.serializeVisitor(v, user));
+const serializeAll = (visitors, user) =>
+  visitors.map((v) => service.serializeVisitor(v, user));
 
 export async function list(req, res) {
-  const { items, meta } = await service.listVisitors(req.query, getPagination(req.query));
+  const { items, meta } = await service.listVisitors(
+    req.query,
+    getPagination(req.query),
+  );
   return sendSuccess(res, {
     message: "Visitors retrieved successfully",
     data: serializeAll(items, req.user),
@@ -15,7 +23,10 @@ export async function list(req, res) {
 
 export async function search(req, res) {
   const visitors = await service.searchVisitors(req.query.q, req.query.limit);
-  return sendSuccess(res, { message: "Visitor search results", data: serializeAll(visitors, req.user) });
+  return sendSuccess(res, {
+    message: "Visitor search results",
+    data: serializeAll(visitors, req.user),
+  });
 }
 
 export async function getById(req, res) {
@@ -32,7 +43,11 @@ export async function history(req, res) {
     req.params.id,
     getPagination(req.query),
   );
-  return sendSuccess(res, { message: "Visitor history retrieved successfully", data, meta });
+  return sendSuccess(res, {
+    message: "Visitor history retrieved successfully",
+    data,
+    meta,
+  });
 }
 
 export async function create(req, res) {
@@ -42,7 +57,10 @@ export async function create(req, res) {
 
 export async function update(req, res) {
   const visitor = await service.updateVisitor(req, req.params.id, req.body);
-  return sendSuccess(res, { message: "Visitor updated successfully", data: visitor });
+  return sendSuccess(res, {
+    message: "Visitor updated successfully",
+    data: visitor,
+  });
 }
 
 export async function remove(req, res) {

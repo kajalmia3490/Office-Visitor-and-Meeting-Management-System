@@ -16,7 +16,9 @@ async function start() {
   startScheduler();
 
   server.listen(env.PORT, () => {
-    logger.info(`Server listening on http://localhost:${env.PORT} (${env.NODE_ENV})`);
+    logger.info(
+      `Server listening on http://localhost:${env.PORT} (${env.NODE_ENV})`,
+    );
     logger.info(`API docs available at http://localhost:${env.PORT}/api-docs`);
   });
 

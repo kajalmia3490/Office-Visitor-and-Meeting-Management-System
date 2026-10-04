@@ -1,6 +1,13 @@
 import { z } from "zod";
 import { ROLE_VALUES } from "../../config/constants.js";
-import { booleanString, email, idParams, objectId, paginationQuery, phone } from "../../utils/validators.js";
+import {
+  booleanString,
+  email,
+  idParams,
+  objectId,
+  paginationQuery,
+  phone,
+} from "../../utils/validators.js";
 
 const userFields = {
   name: z.string().trim().min(2).max(120),
@@ -32,7 +39,9 @@ export const updateUserSchema = {
       employeeId: userFields.employeeId,
       profileImage: userFields.profileImage,
     })
-    .refine((data) => Object.keys(data).length > 0, { message: "At least one field is required" }),
+    .refine((data) => Object.keys(data).length > 0, {
+      message: "At least one field is required",
+    }),
 };
 
 export const updateUserStatusSchema = {

@@ -9,7 +9,9 @@ export async function me(req, res) {
     message: "Authenticated user",
     data: {
       user: req.user,
-      session: session ? { id: session.id, expiresAt: session.expiresAt } : null,
+      session: session
+        ? { id: session.id, expiresAt: session.expiresAt }
+        : null,
     },
   });
 }

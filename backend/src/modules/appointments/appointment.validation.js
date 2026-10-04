@@ -20,7 +20,11 @@ function refineSchedule(data, ctx) {
     });
   }
   if (data.scheduledEndAt <= new Date()) {
-    ctx.addIssue({ code: "custom", path: ["scheduledEndAt"], message: "scheduledEndAt must be in the future" });
+    ctx.addIssue({
+      code: "custom",
+      path: ["scheduledEndAt"],
+      message: "scheduledEndAt must be in the future",
+    });
   }
 }
 
@@ -41,7 +45,8 @@ export const createAppointmentSchema = {
         ctx.addIssue({
           code: "custom",
           path: ["visitor"],
-          message: "Provide either visitor (id) or visitorDetails, but not both",
+          message:
+            "Provide either visitor (id) or visitorDetails, but not both",
         });
       }
       refineSchedule(data, ctx);
@@ -59,12 +64,17 @@ export const updateAppointmentSchema = {
       scheduledEndAt: isoDate.optional(),
       notes: z.string().trim().max(1000).optional(),
     })
-    .refine((data) => Object.keys(data).length > 0, { message: "At least one field is required" }),
+    .refine((data) => Object.keys(data).length > 0, {
+      message: "At least one field is required",
+    }),
 };
 
 export const decisionSchema = {
   params: idParams,
-  body: z.object({ reason: z.string().trim().max(500).optional() }).optional().default({}),
+  body: z
+    .object({ reason: z.string().trim().max(500).optional() })
+    .optional()
+    .default({}),
 };
 
 export const listAppointmentsSchema = {

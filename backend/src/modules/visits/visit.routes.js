@@ -18,13 +18,43 @@ const canCheckInOut = authorize(ADMIN, RECEPTIONIST, SECURITY);
 
 router.get("/active", canViewActive, asyncHandler(controller.active));
 router.get("/today", canView, asyncHandler(controller.today));
-router.post("/walk-in", canRegisterWalkIn, validate(schemas.walkInSchema), asyncHandler(controller.walkIn));
+router.post(
+  "/walk-in",
+  canRegisterWalkIn,
+  validate(schemas.walkInSchema),
+  asyncHandler(controller.walkIn),
+);
 
-router.get("/", canView, validate(schemas.listVisitsSchema), asyncHandler(controller.list));
-router.get("/:id", canView, validate(schemas.visitIdSchema), asyncHandler(controller.getById));
-router.get("/:id/pass", canView, validate(schemas.visitIdSchema), asyncHandler(controller.pass));
+router.get(
+  "/",
+  canView,
+  validate(schemas.listVisitsSchema),
+  asyncHandler(controller.list),
+);
+router.get(
+  "/:id",
+  canView,
+  validate(schemas.visitIdSchema),
+  asyncHandler(controller.getById),
+);
+router.get(
+  "/:id/pass",
+  canView,
+  validate(schemas.visitIdSchema),
+  asyncHandler(controller.pass),
+);
 
-router.post("/:id/check-in", canCheckInOut, validate(schemas.checkInSchema), asyncHandler(controller.checkIn));
-router.post("/:id/check-out", canCheckInOut, validate(schemas.checkOutSchema), asyncHandler(controller.checkOut));
+router.post(
+  "/:id/check-in",
+  canCheckInOut,
+  validate(schemas.checkInSchema),
+  asyncHandler(controller.checkIn),
+);
+router.post(
+  "/:id/check-out",
+  canCheckInOut,
+  validate(schemas.checkOutSchema),
+  asyncHandler(controller.checkOut),
+);
 
 export default router;

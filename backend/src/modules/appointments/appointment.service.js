@@ -2,7 +2,10 @@ import { Appointment } from "./appointment.model.js";
 import { Visit } from "../visits/visit.model.js";
 import { Meeting } from "../meetings/meeting.model.js";
 import { ensureActiveUser } from "../users/user.service.js";
-import { resolveVisitor, VISITOR_SUMMARY_FIELDS } from "../visitors/visitor.service.js";
+import {
+  resolveVisitor,
+  VISITOR_SUMMARY_FIELDS,
+} from "../visitors/visitor.service.js";
 import { notify, notifyMany } from "../notifications/notification.service.js";
 import { recordAudit } from "../auditLogs/auditLog.service.js";
 import {
@@ -27,8 +30,10 @@ export const APPOINTMENT_POPULATE = [
 
 const idOf = (ref) => String(ref?._id ?? ref);
 const isAdmin = (user) => user.role === ROLES.ADMIN;
-const isHost = (user, appointment) => idOf(appointment.hostEmployee) === String(user._id);
-const isCreator = (user, appointment) => idOf(appointment.createdBy) === String(user._id);
+const isHost = (user, appointment) =>
+  idOf(appointment.hostEmployee) === String(user._id);
+const isCreator = (user, appointment) =>
+  idOf(appointment.createdBy) === String(user._id);
 
 function assertCanView(user, appointment) {
   if (user.role !== ROLES.EMPLOYEE) return;
@@ -39,28 +44,39 @@ function assertCanView(user, appointment) {
 
 function assertCanEdit(user, appointment) {
   const allowed =
-    isAdmin(user) || user.role === ROLES.RECEPTIONIST || isHost(user, appointment) || isCreator(user, appointment);
+    isAdmin(user) ||
+    user.role === ROLES.RECEPTIONIST ||
+    isHost(user, appointment) ||
+    isCreator(user, appointment);
   if (!allowed) throw ApiError.forbidden("You cannot modify this appointment");
 }
 
 function assertCanDecide(user, appointment) {
   if (!isAdmin(user) && !isHost(user, appointment)) {
-    throw ApiError.forbidden("Only the host employee or an admin can approve or reject this appointment");
+    throw ApiError.forbidden(
+      "Only the host employee or an admin can approve or reject this appointment",
+    );
   }
 }
 
 async function ensureMeeting(meetingId) {
   if (!meetingId) return;
   const meeting = await Meeting.findById(meetingId).select("status");
-  if (!meeting) throw ApiError.badRequest("Meeting not found", "MEETING_NOT_FOUND");
+  if (!meeting)
+    throw ApiError.badRequest("Meeting not found", "MEETING_NOT_FOUND");
   if (meeting.status === MEETING_STATUS.CANCELLED) {
-    throw ApiError.badRequest("Cannot link a cancelled meeting", "MEETING_CANCELLED");
+    throw ApiError.badRequest(
+      "Cannot link a cancelled meeting",
+      "MEETING_CANCELLED",
+    );
   }
 }
 
 export async function getAppointmentOrThrow(id) {
-  const appointment = await Appointment.findById(id).populate(APPOINTMENT_POPULATE);
-  if (!appointment) throw ApiError.notFound("Appointment not found", "APPOINTMENT_NOT_FOUND");
+  const appointment =
+    await Appointment.findById(id).populate(APPOINTMENT_POPULATE);
+  if (!appointment)
+    throw ApiError.notFound("Appointment not found", "APPOINTMENT_NOT_FOUND");
   return appointment;
 }
 
@@ -126,7 +142,9 @@ export async function createAppointment(req, data) {
 
   if (user.role === ROLES.EMPLOYEE) {
     if (hostId && hostId !== String(user._id)) {
-      throw ApiError.forbidden("Employees can only create appointments they host");
+      throw ApiError.forbidden(
+        "Employees can only create appointments they host",
+      );
     }
     hostId = String(user._id);
   }
@@ -174,13 +192,25 @@ export async function updateAppointment(req, id, data) {
   const appointment = await getAppointmentOrThrow(id);
   assertCanEdit(req.user, appointment);
 
-  if (![APPOINTMENT_STATUS.PENDING, APPOINTMENT_STATUS.APPROVED].includes(appointment.status)) {
-    throw ApiError.conflict(`A ${appointment.status} appointment cannot be updated`, "APPOINTMENT_NOT_EDITABLE");
+  if (
+    ![APPOINTMENT_STATUS.PENDING, APPOINTMENT_STATUS.APPROVED].includes(
+      appointment.status,
+    )
+  ) {
+    throw ApiError.conflict(
+      `A ${appointment.status} appointment cannot be updated`,
+      "APPOINTMENT_NOT_EDITABLE",
+    );
   }
 
-  if (data.hostEmployee && data.hostEmployee !== idOf(appointment.hostEmployee)) {
+  if (
+    data.hostEmployee &&
+    data.hostEmployee !== idOf(appointment.hostEmployee)
+  ) {
     if (![ROLES.ADMIN, ROLES.RECEPTIONIST].includes(req.user.role)) {
-      throw ApiError.forbidden("Only an admin or receptionist can change the host employee");
+      throw ApiError.forbidden(
+        "Only an admin or receptionist can change the host employee",
+      );
     }
     await ensureActiveUser(data.hostEmployee, "Host employee");
   }
@@ -188,7 +218,8 @@ export async function updateAppointment(req, id, data) {
 
   const start = data.scheduledStartAt ?? appointment.scheduledStartAt;
   const end = data.scheduledEndAt ?? appointment.scheduledEndAt;
-  if (end <= start) throw ApiError.validation("scheduledEndAt must be after scheduledStartAt");
+  if (end <= start)
+    throw ApiError.validation("scheduledEndAt must be after scheduledStartAt");
   if ((data.scheduledStartAt || data.scheduledEndAt) && end <= new Date()) {
     throw ApiError.validation("scheduledEndAt must be in the future");
   }
@@ -196,10 +227,18 @@ export async function updateAppointment(req, id, data) {
   Object.assign(appointment, data);
   await appointment.save();
 
-  if (appointment.status === APPOINTMENT_STATUS.APPROVED && (data.hostEmployee || data.purpose)) {
+  if (
+    appointment.status === APPOINTMENT_STATUS.APPROVED &&
+    (data.hostEmployee || data.purpose)
+  ) {
     await Visit.updateOne(
       { appointment: appointment._id, status: VISIT_STATUS.EXPECTED },
-      { $set: { hostEmployee: idOf(appointment.hostEmployee), purpose: appointment.purpose } },
+      {
+        $set: {
+          hostEmployee: idOf(appointment.hostEmployee),
+          purpose: appointment.purpose,
+        },
+      },
     );
   }
 
@@ -219,10 +258,16 @@ export async function approveAppointment(req, id) {
   assertCanDecide(req.user, appointment);
 
   if (appointment.status !== APPOINTMENT_STATUS.PENDING) {
-    throw ApiError.conflict(`Only pending appointments can be approved (current: ${appointment.status})`, "INVALID_APPOINTMENT_STATUS");
+    throw ApiError.conflict(
+      `Only pending appointments can be approved (current: ${appointment.status})`,
+      "INVALID_APPOINTMENT_STATUS",
+    );
   }
   if (appointment.scheduledEndAt <= new Date()) {
-    throw ApiError.conflict("Appointment time has already passed", "APPOINTMENT_EXPIRED");
+    throw ApiError.conflict(
+      "Appointment time has already passed",
+      "APPOINTMENT_EXPIRED",
+    );
   }
 
   await approve(req, appointment);
@@ -245,7 +290,10 @@ export async function rejectAppointment(req, id, reason) {
   assertCanDecide(req.user, appointment);
 
   if (appointment.status !== APPOINTMENT_STATUS.PENDING) {
-    throw ApiError.conflict(`Only pending appointments can be rejected (current: ${appointment.status})`, "INVALID_APPOINTMENT_STATUS");
+    throw ApiError.conflict(
+      `Only pending appointments can be rejected (current: ${appointment.status})`,
+      "INVALID_APPOINTMENT_STATUS",
+    );
   }
 
   appointment.status = APPOINTMENT_STATUS.REJECTED;
@@ -279,13 +327,23 @@ export async function cancelAppointment(req, id, reason) {
   const appointment = await getAppointmentOrThrow(id);
   assertCanEdit(req.user, appointment);
 
-  if (![APPOINTMENT_STATUS.PENDING, APPOINTMENT_STATUS.APPROVED].includes(appointment.status)) {
-    throw ApiError.conflict(`A ${appointment.status} appointment cannot be cancelled`, "INVALID_APPOINTMENT_STATUS");
+  if (
+    ![APPOINTMENT_STATUS.PENDING, APPOINTMENT_STATUS.APPROVED].includes(
+      appointment.status,
+    )
+  ) {
+    throw ApiError.conflict(
+      `A ${appointment.status} appointment cannot be cancelled`,
+      "INVALID_APPOINTMENT_STATUS",
+    );
   }
 
   const visit = await Visit.findOne({ appointment: appointment._id });
   if (visit && visit.status !== VISIT_STATUS.EXPECTED) {
-    throw ApiError.conflict("The visitor has already checked in for this appointment", "VISIT_IN_PROGRESS");
+    throw ApiError.conflict(
+      "The visitor has already checked in for this appointment",
+      "VISIT_IN_PROGRESS",
+    );
   }
 
   appointment.status = APPOINTMENT_STATUS.CANCELLED;
@@ -305,9 +363,10 @@ export async function cancelAppointment(req, id, reason) {
     metadata: reason ? { reason } : undefined,
   });
 
-  const recipients = [idOf(appointment.hostEmployee), idOf(appointment.createdBy)].filter(
-    (uid) => uid !== String(req.user._id),
-  );
+  const recipients = [
+    idOf(appointment.hostEmployee),
+    idOf(appointment.createdBy),
+  ].filter((uid) => uid !== String(req.user._id));
   await notifyMany(recipients, {
     type: NOTIFICATION_TYPES.APPOINTMENT_CANCELLED,
     title: "Appointment cancelled",

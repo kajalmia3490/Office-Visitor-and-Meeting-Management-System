@@ -11,17 +11,33 @@ const router = Router();
 // Any authenticated user can browse rooms and check availability; only admins manage them.
 const canManage = authorize(ROLES.ADMIN);
 
-router.get("/availability", validate(schemas.availabilitySchema), asyncHandler(controller.availability));
+router.get(
+  "/availability",
+  validate(schemas.availabilitySchema),
+  asyncHandler(controller.availability),
+);
 
 router
   .route("/")
   .get(validate(schemas.listRoomsSchema), asyncHandler(controller.list))
-  .post(canManage, validate(schemas.createRoomSchema), asyncHandler(controller.create));
+  .post(
+    canManage,
+    validate(schemas.createRoomSchema),
+    asyncHandler(controller.create),
+  );
 
 router
   .route("/:id")
   .get(validate(schemas.roomIdSchema), asyncHandler(controller.getById))
-  .patch(canManage, validate(schemas.updateRoomSchema), asyncHandler(controller.update))
-  .delete(canManage, validate(schemas.roomIdSchema), asyncHandler(controller.remove));
+  .patch(
+    canManage,
+    validate(schemas.updateRoomSchema),
+    asyncHandler(controller.update),
+  )
+  .delete(
+    canManage,
+    validate(schemas.roomIdSchema),
+    asyncHandler(controller.remove),
+  );
 
 export default router;

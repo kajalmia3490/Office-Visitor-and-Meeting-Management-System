@@ -10,18 +10,34 @@ const router = Router();
 
 const canSchedule = authorize(ROLES.ADMIN, ROLES.EMPLOYEE);
 
-router.get("/upcoming", validate(schemas.upcomingMeetingsSchema), asyncHandler(controller.upcoming));
-router.get("/my-meetings", validate(schemas.listMeetingsSchema), asyncHandler(controller.myMeetings));
+router.get(
+  "/upcoming",
+  validate(schemas.upcomingMeetingsSchema),
+  asyncHandler(controller.upcoming),
+);
+router.get(
+  "/my-meetings",
+  validate(schemas.listMeetingsSchema),
+  asyncHandler(controller.myMeetings),
+);
 
 router
   .route("/")
   .get(validate(schemas.listMeetingsSchema), asyncHandler(controller.list))
-  .post(canSchedule, validate(schemas.createMeetingSchema), asyncHandler(controller.create));
+  .post(
+    canSchedule,
+    validate(schemas.createMeetingSchema),
+    asyncHandler(controller.create),
+  );
 
 router
   .route("/:id")
   .get(validate(schemas.meetingIdSchema), asyncHandler(controller.getById))
-  .patch(canSchedule, validate(schemas.updateMeetingSchema), asyncHandler(controller.update));
+  .patch(
+    canSchedule,
+    validate(schemas.updateMeetingSchema),
+    asyncHandler(controller.update),
+  );
 
 router.patch(
   "/:id/cancel",

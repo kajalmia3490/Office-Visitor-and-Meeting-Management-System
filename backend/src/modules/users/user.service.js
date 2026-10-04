@@ -15,7 +15,8 @@ const FULL_ACCESS_ROLES = [ROLES.ADMIN, ROLES.MANAGEMENT];
 async function ensureDepartment(departmentId) {
   if (!departmentId) return;
   const exists = await Department.exists({ _id: departmentId });
-  if (!exists) throw ApiError.badRequest("Department not found", "DEPARTMENT_NOT_FOUND");
+  if (!exists)
+    throw ApiError.badRequest("Department not found", "DEPARTMENT_NOT_FOUND");
 }
 
 export async function getUserOrThrow(id) {
@@ -28,7 +29,8 @@ export async function getUserOrThrow(id) {
 export async function ensureActiveUser(id, label = "User") {
   const user = await User.findById(id);
   if (!user) throw ApiError.badRequest(`${label} not found`, "USER_NOT_FOUND");
-  if (!user.isActive) throw ApiError.badRequest(`${label} is inactive`, "USER_INACTIVE");
+  if (!user.isActive)
+    throw ApiError.badRequest(`${label} is inactive`, "USER_INACTIVE");
   return user;
 }
 
@@ -61,7 +63,8 @@ export async function listUsers(currentUser, query, pagination) {
 
 export async function getUser(currentUser, id) {
   const isSelf = String(currentUser._id) === String(id);
-  if (!isSelf && !FULL_ACCESS_ROLES.includes(currentUser.role)) throw ApiError.forbidden();
+  if (!isSelf && !FULL_ACCESS_ROLES.includes(currentUser.role))
+    throw ApiError.forbidden();
   return getUserOrThrow(id);
 }
 
@@ -84,7 +87,10 @@ export async function updateUser(req, id, data) {
   const isSelf = String(req.user._id) === String(id);
 
   if (isSelf && data.role && data.role !== ROLES.ADMIN) {
-    throw ApiError.badRequest("You cannot remove your own admin role", "SELF_ROLE_CHANGE");
+    throw ApiError.badRequest(
+      "You cannot remove your own admin role",
+      "SELF_ROLE_CHANGE",
+    );
   }
   if (data.department) await ensureDepartment(data.department);
 
@@ -97,7 +103,10 @@ export async function updateUser(req, id, data) {
     module: AUDIT_MODULES.USERS,
     targetId: user._id,
     description: `User ${user.email} updated`,
-    metadata: { fields: Object.keys(data), ...(data.role && { previousRole, newRole: data.role }) },
+    metadata: {
+      fields: Object.keys(data),
+      ...(data.role && { previousRole, newRole: data.role }),
+    },
   });
 
   return getUserOrThrow(user._id);
@@ -105,7 +114,10 @@ export async function updateUser(req, id, data) {
 
 export async function setUserStatus(req, id, isActive) {
   if (String(req.user._id) === String(id) && !isActive) {
-    throw ApiError.badRequest("You cannot deactivate your own account", "SELF_DEACTIVATION");
+    throw ApiError.badRequest(
+      "You cannot deactivate your own account",
+      "SELF_DEACTIVATION",
+    );
   }
 
   const user = await getUserOrThrow(id);
@@ -113,7 +125,9 @@ export async function setUserStatus(req, id, isActive) {
   await user.save();
 
   await recordAudit(req, {
-    action: isActive ? AUDIT_ACTIONS.USER_ACTIVATED : AUDIT_ACTIONS.USER_DEACTIVATED,
+    action: isActive
+      ? AUDIT_ACTIONS.USER_ACTIVATED
+      : AUDIT_ACTIONS.USER_DEACTIVATED,
     module: AUDIT_MODULES.USERS,
     targetId: user._id,
     description: `User ${user.email} ${isActive ? "activated" : "deactivated"}`,
@@ -124,13 +138,18 @@ export async function setUserStatus(req, id, isActive) {
 
 export async function deleteUser(req, id) {
   if (String(req.user._id) === String(id)) {
-    throw ApiError.badRequest("You cannot delete your own account", "SELF_DELETION");
+    throw ApiError.badRequest(
+      "You cannot delete your own account",
+      "SELF_DELETION",
+    );
   }
 
   const user = await getUserOrThrow(id);
 
   const [visits, meetings, appointments, headOf] = await Promise.all([
-    Visit.exists({ $or: [{ hostEmployee: id }, { checkInBy: id }, { checkOutBy: id }] }),
+    Visit.exists({
+      $or: [{ hostEmployee: id }, { checkInBy: id }, { checkOutBy: id }],
+    }),
     Meeting.exists({ $or: [{ organizer: id }, { "attendees.user": id }] }),
     Appointment.exists({ $or: [{ hostEmployee: id }, { createdBy: id }] }),
     Department.exists({ head: id }),

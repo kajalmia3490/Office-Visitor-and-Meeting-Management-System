@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { booleanString, idParams, objectId, paginationQuery } from "../../utils/validators.js";
+import {
+  booleanString,
+  idParams,
+  objectId,
+  paginationQuery,
+} from "../../utils/validators.js";
 
 const fields = {
   name: z.string().trim().min(2).max(120),
@@ -8,7 +13,10 @@ const fields = {
     .trim()
     .min(2)
     .max(20)
-    .regex(/^[A-Za-z0-9_-]+$/, "Code may only contain letters, numbers, '-' and '_'"),
+    .regex(
+      /^[A-Za-z0-9_-]+$/,
+      "Code may only contain letters, numbers, '-' and '_'",
+    ),
   description: z.string().trim().max(1000).optional(),
   head: objectId.nullable().optional(),
   isActive: z.boolean().optional(),
@@ -28,7 +36,9 @@ export const updateDepartmentSchema = {
       head: fields.head,
       isActive: fields.isActive,
     })
-    .refine((data) => Object.keys(data).length > 0, { message: "At least one field is required" }),
+    .refine((data) => Object.keys(data).length > 0, {
+      message: "At least one field is required",
+    }),
 };
 
 export const listDepartmentsSchema = {

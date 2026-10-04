@@ -6,7 +6,10 @@ import { paginate } from "../../utils/pagination.js";
  * Records an audit entry. Audit failures are logged but never break the
  * business operation that triggered them.
  */
-export async function recordAudit(req, { action, module, targetId, description, metadata }) {
+export async function recordAudit(
+  req,
+  { action, module, targetId, description, metadata },
+) {
   try {
     await AuditLog.create({
       user: req?.user?._id ?? null,

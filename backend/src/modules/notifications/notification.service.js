@@ -8,7 +8,15 @@ import { paginate } from "../../utils/pagination.js";
  * Persists a notification and pushes it over Socket.IO when available.
  * Delivery failures never break the business operation that triggered it.
  */
-export async function notify({ recipient, type, title, message, relatedVisit, relatedMeeting, relatedAppointment }) {
+export async function notify({
+  recipient,
+  type,
+  title,
+  message,
+  relatedVisit,
+  relatedMeeting,
+  relatedAppointment,
+}) {
   try {
     const notification = await Notification.create({
       recipient,
@@ -29,7 +37,9 @@ export async function notify({ recipient, type, title, message, relatedVisit, re
 
 export async function notifyMany(recipients, payload) {
   const unique = [...new Set(recipients.filter(Boolean).map(String))];
-  return Promise.all(unique.map((recipient) => notify({ ...payload, recipient })));
+  return Promise.all(
+    unique.map((recipient) => notify({ ...payload, recipient })),
+  );
 }
 
 export async function listNotifications(userId, query, pagination) {
@@ -49,8 +59,12 @@ export async function listUnread(userId, limit = 50) {
 }
 
 export async function markAsRead(userId, id) {
-  const notification = await Notification.findOne({ _id: id, recipient: userId });
-  if (!notification) throw ApiError.notFound("Notification not found", "NOTIFICATION_NOT_FOUND");
+  const notification = await Notification.findOne({
+    _id: id,
+    recipient: userId,
+  });
+  if (!notification)
+    throw ApiError.notFound("Notification not found", "NOTIFICATION_NOT_FOUND");
 
   if (!notification.isRead) {
     notification.isRead = true;

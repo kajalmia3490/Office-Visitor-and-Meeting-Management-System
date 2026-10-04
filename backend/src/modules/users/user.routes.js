@@ -11,13 +11,25 @@ const router = Router();
 router
   .route("/")
   .get(validate(schemas.listUsersSchema), asyncHandler(controller.list))
-  .post(authorize(ROLES.ADMIN), validate(schemas.createUserSchema), asyncHandler(controller.create));
+  .post(
+    authorize(ROLES.ADMIN),
+    validate(schemas.createUserSchema),
+    asyncHandler(controller.create),
+  );
 
 router
   .route("/:id")
   .get(validate(schemas.userIdSchema), asyncHandler(controller.getById))
-  .patch(authorize(ROLES.ADMIN), validate(schemas.updateUserSchema), asyncHandler(controller.update))
-  .delete(authorize(ROLES.ADMIN), validate(schemas.userIdSchema), asyncHandler(controller.remove));
+  .patch(
+    authorize(ROLES.ADMIN),
+    validate(schemas.updateUserSchema),
+    asyncHandler(controller.update),
+  )
+  .delete(
+    authorize(ROLES.ADMIN),
+    validate(schemas.userIdSchema),
+    asyncHandler(controller.remove),
+  );
 
 router.patch(
   "/:id/status",

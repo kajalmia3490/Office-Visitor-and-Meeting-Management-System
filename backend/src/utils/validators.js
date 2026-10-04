@@ -4,9 +4,12 @@ import { z } from "zod";
 export const objectId = z
   .string()
   .trim()
-  .refine((value) => mongoose.isValidObjectId(value) && /^[a-f\d]{24}$/i.test(value), {
-    message: "Invalid id",
-  });
+  .refine(
+    (value) => mongoose.isValidObjectId(value) && /^[a-f\d]{24}$/i.test(value),
+    {
+      message: "Invalid id",
+    },
+  );
 
 export const idParams = z.object({ id: objectId });
 
@@ -17,7 +20,11 @@ export const phone = z
   .trim()
   .regex(/^\+?[0-9\s\-()]{6,20}$/, "Invalid phone number");
 
-export const email = z.string().trim().toLowerCase().email("Invalid email address");
+export const email = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .email("Invalid email address");
 
 export const booleanString = z
   .union([z.boolean(), z.enum(["true", "false"])])
@@ -35,7 +42,11 @@ export const dateRangeQuery = {
 
 export const refineDateRange = (data, ctx) => {
   if (data.from && data.to && data.from > data.to) {
-    ctx.addIssue({ code: "custom", path: ["to"], message: "'to' must be after 'from'" });
+    ctx.addIssue({
+      code: "custom",
+      path: ["to"],
+      message: "'to' must be after 'from'",
+    });
   }
 };
 

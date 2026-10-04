@@ -11,13 +11,16 @@ const HEAD_POPULATE = { path: "head", select: "name email role employeeId" };
 async function ensureHead(headId) {
   if (!headId) return;
   const head = await User.findById(headId);
-  if (!head) throw ApiError.badRequest("Department head not found", "USER_NOT_FOUND");
-  if (!head.isActive) throw ApiError.badRequest("Department head is inactive", "USER_INACTIVE");
+  if (!head)
+    throw ApiError.badRequest("Department head not found", "USER_NOT_FOUND");
+  if (!head.isActive)
+    throw ApiError.badRequest("Department head is inactive", "USER_INACTIVE");
 }
 
 export async function getDepartmentOrThrow(id) {
   const department = await Department.findById(id).populate(HEAD_POPULATE);
-  if (!department) throw ApiError.notFound("Department not found", "DEPARTMENT_NOT_FOUND");
+  if (!department)
+    throw ApiError.notFound("Department not found", "DEPARTMENT_NOT_FOUND");
   return department;
 }
 
@@ -28,7 +31,10 @@ export async function listDepartments(query, pagination) {
     const regex = new RegExp(escapeRegex(query.q), "i");
     filter.$or = [{ name: regex }, { code: regex }];
   }
-  return paginate(Department, filter, pagination, { sort: { name: 1 }, populate: HEAD_POPULATE });
+  return paginate(Department, filter, pagination, {
+    sort: { name: 1 },
+    populate: HEAD_POPULATE,
+  });
 }
 
 export async function createDepartment(req, data) {

@@ -17,8 +17,16 @@ const meetingSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true, maxlength: 200 },
     description: { type: String, trim: true, maxlength: 2000 },
-    organizer: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    room: { type: mongoose.Schema.Types.ObjectId, ref: "MeetingRoom", required: true },
+    organizer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    room: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "MeetingRoom",
+      required: true,
+    },
     startAt: { type: Date, required: true },
     endAt: { type: Date, required: true },
     status: {

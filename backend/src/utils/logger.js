@@ -14,7 +14,12 @@ export const logger = winston.createLogger({
   silent: isTest,
   format: isProduction
     ? combine(timestamp(), errors({ stack: true }), json())
-    : combine(colorize(), timestamp({ format: "HH:mm:ss" }), errors({ stack: true }), devFormat),
+    : combine(
+        colorize(),
+        timestamp({ format: "HH:mm:ss" }),
+        errors({ stack: true }),
+        devFormat,
+      ),
   transports: [new winston.transports.Console()],
 });
 

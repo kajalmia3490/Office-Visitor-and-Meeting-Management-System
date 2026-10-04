@@ -11,7 +11,10 @@ function normalizeError(err) {
   if (err instanceof ZodError) {
     return ApiError.validation(
       "Validation failed",
-      err.issues.map((issue) => ({ path: issue.path.join("."), message: issue.message })),
+      err.issues.map((issue) => ({
+        path: issue.path.join("."),
+        message: issue.message,
+      })),
     );
   }
 
@@ -22,7 +25,10 @@ function normalizeError(err) {
   if (err instanceof mongoose.Error.ValidationError) {
     return ApiError.validation(
       "Validation failed",
-      Object.values(err.errors).map((e) => ({ path: e.path, message: e.message })),
+      Object.values(err.errors).map((e) => ({
+        path: e.path,
+        message: e.message,
+      })),
     );
   }
 
@@ -63,7 +69,9 @@ export function errorHandler(err, req, res, next) {
   logger.error(err);
   return sendError(res, {
     statusCode: 500,
-    message: env.isProduction ? "Internal server error" : err?.message || "Internal server error",
+    message: env.isProduction
+      ? "Internal server error"
+      : err?.message || "Internal server error",
     code: "INTERNAL_ERROR",
   });
 }

@@ -21,7 +21,10 @@ export const verifyPassSchema = {
 
 export const revokePassSchema = {
   params: idParams,
-  body: z.object({ reason: z.string().trim().max(500).optional() }).optional().default({}),
+  body: z
+    .object({ reason: z.string().trim().max(500).optional() })
+    .optional()
+    .default({}),
 };
 
 export const passIdSchema = { params: idParams };

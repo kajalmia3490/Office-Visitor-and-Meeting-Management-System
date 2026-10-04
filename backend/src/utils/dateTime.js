@@ -35,16 +35,24 @@ export function todayRange(now = new Date()) {
  */
 export function resolveDateRange({ from, to } = {}, defaultDays = 30) {
   const end = to ? new Date(to) : new Date();
-  const start = from ? new Date(from) : startOfDayUTC(addDays(end, -(defaultDays - 1)));
+  const start = from
+    ? new Date(from)
+    : startOfDayUTC(addDays(end, -(defaultDays - 1)));
   return { from: start, to: end };
 }
 
 export function minutesBetween(start, end) {
-  return Math.max(0, Math.round((new Date(end) - new Date(start)) / MS_PER_MINUTE));
+  return Math.max(
+    0,
+    Math.round((new Date(end) - new Date(start)) / MS_PER_MINUTE),
+  );
 }
 
 export function daysInRange(from, to) {
-  return Math.max(1, Math.ceil((startOfDayUTC(to) - startOfDayUTC(from)) / MS_PER_DAY) + 1);
+  return Math.max(
+    1,
+    Math.ceil((startOfDayUTC(to) - startOfDayUTC(from)) / MS_PER_DAY) + 1,
+  );
 }
 
 export function formatDateKey(date) {

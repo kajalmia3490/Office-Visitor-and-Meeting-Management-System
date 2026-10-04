@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { IDENTITY_TYPES } from "../../config/constants.js";
-import { email, idParams, paginationQuery, phone } from "../../utils/validators.js";
+import {
+  email,
+  idParams,
+  paginationQuery,
+  phone,
+} from "../../utils/validators.js";
 
 export const visitorFields = {
   fullName: z.string().trim().min(2).max(150),
@@ -39,7 +44,9 @@ export const updateVisitorSchema = {
       photo: visitorFields.photo,
       emergencyContact: visitorFields.emergencyContact,
     })
-    .refine((data) => Object.keys(data).length > 0, { message: "At least one field is required" }),
+    .refine((data) => Object.keys(data).length > 0, {
+      message: "At least one field is required",
+    }),
 };
 
 export const listVisitorsSchema = {

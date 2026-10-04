@@ -15,7 +15,9 @@ export async function runHousekeeping() {
       expireOverduePasses(),
     ]);
     if (noShows || expiredPasses) {
-      logger.info(`Housekeeping: ${noShows} no-show visit(s), ${expiredPasses} expired pass(es)`);
+      logger.info(
+        `Housekeeping: ${noShows} no-show visit(s), ${expiredPasses} expired pass(es)`,
+      );
     }
   } catch (err) {
     logger.error(`Housekeeping failed: ${err.message}`);

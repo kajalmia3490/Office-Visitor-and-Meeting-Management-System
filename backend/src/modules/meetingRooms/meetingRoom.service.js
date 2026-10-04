@@ -1,14 +1,20 @@
 import { MeetingRoom } from "./meetingRoom.model.js";
 import { Meeting } from "../meetings/meeting.model.js";
 import { recordAudit } from "../auditLogs/auditLog.service.js";
-import { AUDIT_ACTIONS, AUDIT_MODULES, MEETING_STATUS, ROOM_STATUS } from "../../config/constants.js";
+import {
+  AUDIT_ACTIONS,
+  AUDIT_MODULES,
+  MEETING_STATUS,
+  ROOM_STATUS,
+} from "../../config/constants.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { paginate } from "../../utils/pagination.js";
 import { escapeRegex } from "../../utils/validators.js";
 
 export async function getRoomOrThrow(id) {
   const room = await MeetingRoom.findById(id);
-  if (!room) throw ApiError.notFound("Meeting room not found", "ROOM_NOT_FOUND");
+  if (!room)
+    throw ApiError.notFound("Meeting room not found", "ROOM_NOT_FOUND");
   return room;
 }
 

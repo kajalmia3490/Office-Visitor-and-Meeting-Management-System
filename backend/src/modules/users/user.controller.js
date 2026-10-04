@@ -1,15 +1,30 @@
 import * as service from "./user.service.js";
 import { getPagination } from "../../utils/pagination.js";
-import { sendCreated, sendNoContent, sendSuccess } from "../../utils/response.js";
+import {
+  sendCreated,
+  sendNoContent,
+  sendSuccess,
+} from "../../utils/response.js";
 
 export async function list(req, res) {
-  const { items, meta } = await service.listUsers(req.user, req.query, getPagination(req.query));
-  return sendSuccess(res, { message: "Users retrieved successfully", data: items, meta });
+  const { items, meta } = await service.listUsers(
+    req.user,
+    req.query,
+    getPagination(req.query),
+  );
+  return sendSuccess(res, {
+    message: "Users retrieved successfully",
+    data: items,
+    meta,
+  });
 }
 
 export async function getById(req, res) {
   const user = await service.getUser(req.user, req.params.id);
-  return sendSuccess(res, { message: "User retrieved successfully", data: user });
+  return sendSuccess(res, {
+    message: "User retrieved successfully",
+    data: user,
+  });
 }
 
 export async function create(req, res) {
@@ -23,7 +38,11 @@ export async function update(req, res) {
 }
 
 export async function updateStatus(req, res) {
-  const user = await service.setUserStatus(req, req.params.id, req.body.isActive);
+  const user = await service.setUserStatus(
+    req,
+    req.params.id,
+    req.body.isActive,
+  );
   return sendSuccess(res, {
     message: `User ${user.isActive ? "activated" : "deactivated"} successfully`,
     data: user,

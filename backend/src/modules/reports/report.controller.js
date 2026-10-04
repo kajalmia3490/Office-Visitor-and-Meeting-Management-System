@@ -15,22 +15,42 @@ export async function meetings(req, res) {
 
 export async function rooms(req, res) {
   const data = await reports.roomUtilizationReport(req.query);
-  return sendSuccess(res, { message: "Room utilization report generated", data });
+  return sendSuccess(res, {
+    message: "Room utilization report generated",
+    data,
+  });
 }
 
 export async function activeVisitors(req, res) {
   const data = await reports.activeVisitorsReport();
-  return sendSuccess(res, { message: "Active visitors report generated", data });
+  return sendSuccess(res, {
+    message: "Active visitors report generated",
+    data,
+  });
 }
 
 export async function visitorHistory(req, res) {
-  const { items, meta, range } = await reports.visitorHistoryReport(req.query, getPagination(req.query));
-  return sendSuccess(res, { message: "Visitor history report generated", data: { range, items }, meta });
+  const { items, meta, range } = await reports.visitorHistoryReport(
+    req.query,
+    getPagination(req.query),
+  );
+  return sendSuccess(res, {
+    message: "Visitor history report generated",
+    data: { range, items },
+    meta,
+  });
 }
 
 export async function meetingHistory(req, res) {
-  const { items, meta, range } = await reports.meetingHistoryReport(req.query, getPagination(req.query));
-  return sendSuccess(res, { message: "Meeting history report generated", data: { range, items }, meta });
+  const { items, meta, range } = await reports.meetingHistoryReport(
+    req.query,
+    getPagination(req.query),
+  );
+  return sendSuccess(res, {
+    message: "Meeting history report generated",
+    data: { range, items },
+    meta,
+  });
 }
 
 export async function adminDashboard(req, res) {

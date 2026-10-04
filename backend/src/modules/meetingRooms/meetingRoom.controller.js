@@ -1,20 +1,37 @@
 import * as service from "./meetingRoom.service.js";
 import { getPagination } from "../../utils/pagination.js";
-import { sendCreated, sendNoContent, sendSuccess } from "../../utils/response.js";
+import {
+  sendCreated,
+  sendNoContent,
+  sendSuccess,
+} from "../../utils/response.js";
 
 export async function list(req, res) {
-  const { items, meta } = await service.listRooms(req.query, getPagination(req.query));
-  return sendSuccess(res, { message: "Meeting rooms retrieved successfully", data: items, meta });
+  const { items, meta } = await service.listRooms(
+    req.query,
+    getPagination(req.query),
+  );
+  return sendSuccess(res, {
+    message: "Meeting rooms retrieved successfully",
+    data: items,
+    meta,
+  });
 }
 
 export async function availability(req, res) {
   const rooms = await service.findAvailableRooms(req.query);
-  return sendSuccess(res, { message: "Available meeting rooms retrieved successfully", data: rooms });
+  return sendSuccess(res, {
+    message: "Available meeting rooms retrieved successfully",
+    data: rooms,
+  });
 }
 
 export async function getById(req, res) {
   const room = await service.getRoomOrThrow(req.params.id);
-  return sendSuccess(res, { message: "Meeting room retrieved successfully", data: room });
+  return sendSuccess(res, {
+    message: "Meeting room retrieved successfully",
+    data: room,
+  });
 }
 
 export async function create(req, res) {
@@ -24,7 +41,10 @@ export async function create(req, res) {
 
 export async function update(req, res) {
   const room = await service.updateRoom(req, req.params.id, req.body);
-  return sendSuccess(res, { message: "Meeting room updated successfully", data: room });
+  return sendSuccess(res, {
+    message: "Meeting room updated successfully",
+    data: room,
+  });
 }
 
 export async function remove(req, res) {

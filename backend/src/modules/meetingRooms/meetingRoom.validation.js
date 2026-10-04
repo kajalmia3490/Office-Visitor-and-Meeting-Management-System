@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { ROOM_STATUS } from "../../config/constants.js";
-import { booleanString, idParams, isoDate, paginationQuery } from "../../utils/validators.js";
+import {
+  booleanString,
+  idParams,
+  isoDate,
+  paginationQuery,
+} from "../../utils/validators.js";
 
 const fields = {
   name: z.string().trim().min(1).max(120),
@@ -28,7 +33,9 @@ export const updateRoomSchema = {
       description: fields.description,
       isActive: fields.isActive,
     })
-    .refine((data) => Object.keys(data).length > 0, { message: "At least one field is required" }),
+    .refine((data) => Object.keys(data).length > 0, {
+      message: "At least one field is required",
+    }),
 };
 
 export const listRoomsSchema = {

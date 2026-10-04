@@ -1,8 +1,14 @@
 import { Visit } from "./visit.model.js";
 import { Appointment } from "../appointments/appointment.model.js";
 import { ensureActiveUser } from "../users/user.service.js";
-import { resolveVisitor, VISITOR_SUMMARY_FIELDS } from "../visitors/visitor.service.js";
-import { expirePassesForVisit, issuePass } from "../visitorPasses/visitorPass.service.js";
+import {
+  resolveVisitor,
+  VISITOR_SUMMARY_FIELDS,
+} from "../visitors/visitor.service.js";
+import {
+  expirePassesForVisit,
+  issuePass,
+} from "../visitorPasses/visitorPass.service.js";
 import { notify } from "../notifications/notification.service.js";
 import { recordAudit } from "../auditLogs/auditLog.service.js";
 import {
@@ -21,7 +27,10 @@ import { paginate } from "../../utils/pagination.js";
 export const VISIT_POPULATE = [
   { path: "visitor", select: VISITOR_SUMMARY_FIELDS },
   { path: "hostEmployee", select: "name email employeeId department" },
-  { path: "appointment", select: "purpose scheduledStartAt scheduledEndAt status" },
+  {
+    path: "appointment",
+    select: "purpose scheduledStartAt scheduledEndAt status",
+  },
   { path: "checkInBy", select: "name role" },
   { path: "checkOutBy", select: "name role" },
 ];
@@ -33,7 +42,10 @@ function scopeFilter(user) {
 }
 
 function assertCanView(user, visit) {
-  if (user.role === ROLES.EMPLOYEE && idOf(visit.hostEmployee) !== String(user._id)) {
+  if (
+    user.role === ROLES.EMPLOYEE &&
+    idOf(visit.hostEmployee) !== String(user._id)
+  ) {
     throw ApiError.forbidden("You can only access visits you host");
   }
 }
@@ -55,7 +67,8 @@ export async function listVisits(user, query, pagination) {
   if (query.status) filter.status = query.status;
   if (query.visitType) filter.visitType = query.visitType;
   if (query.visitor) filter.visitor = query.visitor;
-  if (query.hostEmployee && user.role !== ROLES.EMPLOYEE) filter.hostEmployee = query.hostEmployee;
+  if (query.hostEmployee && user.role !== ROLES.EMPLOYEE)
+    filter.hostEmployee = query.hostEmployee;
   if (query.from || query.to) {
     filter.createdAt = {};
     if (query.from) filter.createdAt.$gte = query.from;
@@ -92,7 +105,11 @@ export async function listTodayVisits(user) {
     .populate(VISIT_POPULATE);
 }
 
-async function afterCheckIn(req, visit, { issuePass: shouldIssuePass, pass: passOptions } = {}) {
+async function afterCheckIn(
+  req,
+  visit,
+  { issuePass: shouldIssuePass, pass: passOptions } = {},
+) {
   const populated = await getVisitOrThrow(visit._id);
   const visitorName = populated.visitor?.fullName ?? "Your visitor";
 
@@ -112,7 +129,9 @@ async function afterCheckIn(req, visit, { issuePass: shouldIssuePass, pass: pass
     }),
   ]);
 
-  const pass = shouldIssuePass ? await issuePass(req, { visit: visit._id, ...passOptions }) : null;
+  const pass = shouldIssuePass
+    ? await issuePass(req, { visit: visit._id, ...passOptions })
+    : null;
   return { visit: populated, pass };
 }
 
@@ -138,7 +157,10 @@ export async function registerWalkIn(req, data) {
     description: `Walk-in visit registered for ${visitor.fullName}`,
   });
 
-  return afterCheckIn(req, visit, { issuePass: data.issuePass ?? true, pass: data.pass });
+  return afterCheckIn(req, visit, {
+    issuePass: data.issuePass ?? true,
+    pass: data.pass,
+  });
 }
 
 export async function checkIn(req, id, options = {}) {
@@ -146,16 +168,27 @@ export async function checkIn(req, id, options = {}) {
   if (!visit) throw ApiError.notFound("Visit not found", "VISIT_NOT_FOUND");
 
   if (visit.status === VISIT_STATUS.CHECKED_IN) {
-    throw ApiError.conflict("Visitor is already checked in", "VISIT_ALREADY_CHECKED_IN");
+    throw ApiError.conflict(
+      "Visitor is already checked in",
+      "VISIT_ALREADY_CHECKED_IN",
+    );
   }
   if (visit.status !== VISIT_STATUS.EXPECTED) {
-    throw ApiError.conflict(`A ${visit.status} visit cannot be checked in`, "INVALID_VISIT_STATUS");
+    throw ApiError.conflict(
+      `A ${visit.status} visit cannot be checked in`,
+      "INVALID_VISIT_STATUS",
+    );
   }
 
   if (visit.appointment) {
-    const appointment = await Appointment.findById(visit.appointment).select("status");
+    const appointment = await Appointment.findById(visit.appointment).select(
+      "status",
+    );
     if (appointment?.status !== APPOINTMENT_STATUS.APPROVED) {
-      throw ApiError.conflict("The appointment for this visit is not approved", "APPOINTMENT_NOT_APPROVED");
+      throw ApiError.conflict(
+        "The appointment for this visit is not approved",
+        "APPOINTMENT_NOT_APPROVED",
+      );
     }
   }
 
@@ -172,7 +205,11 @@ export async function checkIn(req, id, options = {}) {
     { $set: update },
     { returnDocument: "after" },
   );
-  if (!updated) throw ApiError.conflict("Visitor is already checked in", "VISIT_ALREADY_CHECKED_IN");
+  if (!updated)
+    throw ApiError.conflict(
+      "Visitor is already checked in",
+      "VISIT_ALREADY_CHECKED_IN",
+    );
 
   return afterCheckIn(req, updated, options);
 }
@@ -182,10 +219,16 @@ export async function checkOut(req, id, { notes } = {}) {
   if (!visit) throw ApiError.notFound("Visit not found", "VISIT_NOT_FOUND");
 
   if (visit.status === VISIT_STATUS.CHECKED_OUT) {
-    throw ApiError.conflict("Visitor has already checked out", "VISIT_ALREADY_CHECKED_OUT");
+    throw ApiError.conflict(
+      "Visitor has already checked out",
+      "VISIT_ALREADY_CHECKED_OUT",
+    );
   }
   if (visit.status !== VISIT_STATUS.CHECKED_IN) {
-    throw ApiError.conflict(`A ${visit.status} visit cannot be checked out`, "VISIT_NOT_CHECKED_IN");
+    throw ApiError.conflict(
+      `A ${visit.status} visit cannot be checked out`,
+      "VISIT_NOT_CHECKED_IN",
+    );
   }
 
   const update = {
@@ -200,7 +243,11 @@ export async function checkOut(req, id, { notes } = {}) {
     { $set: update },
     { returnDocument: "after" },
   );
-  if (!updated) throw ApiError.conflict("Visitor has already checked out", "VISIT_ALREADY_CHECKED_OUT");
+  if (!updated)
+    throw ApiError.conflict(
+      "Visitor has already checked out",
+      "VISIT_ALREADY_CHECKED_OUT",
+    );
 
   await Promise.all([
     expirePassesForVisit(updated._id),
@@ -252,11 +299,17 @@ export async function markNoShows(now = new Date()) {
 
   await Promise.all([
     Visit.updateMany(
-      { appointment: { $in: noShowAppointmentIds }, status: VISIT_STATUS.EXPECTED },
+      {
+        appointment: { $in: noShowAppointmentIds },
+        status: VISIT_STATUS.EXPECTED,
+      },
       { $set: { status: VISIT_STATUS.NO_SHOW } },
     ),
     Appointment.updateMany(
-      { _id: { $in: noShowAppointmentIds }, status: APPOINTMENT_STATUS.APPROVED },
+      {
+        _id: { $in: noShowAppointmentIds },
+        status: APPOINTMENT_STATUS.APPROVED,
+      },
       { $set: { status: APPOINTMENT_STATUS.NO_SHOW } },
     ),
   ]);

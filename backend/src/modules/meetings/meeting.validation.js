@@ -17,7 +17,11 @@ const attendees = z.array(objectId).max(200);
 export function refineMeetingTimes(data, ctx) {
   if (!data.startAt || !data.endAt) return;
   if (data.endAt <= data.startAt) {
-    ctx.addIssue({ code: "custom", path: ["endAt"], message: "endAt must be after startAt" });
+    ctx.addIssue({
+      code: "custom",
+      path: ["endAt"],
+      message: "endAt must be after startAt",
+    });
   }
   if (data.endAt - data.startAt > MAX_MEETING_HOURS * 60 * 60 * 1000) {
     ctx.addIssue({
@@ -27,7 +31,11 @@ export function refineMeetingTimes(data, ctx) {
     });
   }
   if (data.startAt.getTime() < Date.now() - START_GRACE_MS) {
-    ctx.addIssue({ code: "custom", path: ["startAt"], message: "startAt cannot be in the past" });
+    ctx.addIssue({
+      code: "custom",
+      path: ["startAt"],
+      message: "startAt cannot be in the past",
+    });
   }
 }
 
@@ -56,12 +64,17 @@ export const updateMeetingSchema = {
       endAt: isoDate.optional(),
       attendees: attendees.optional(),
     })
-    .refine((data) => Object.keys(data).length > 0, { message: "At least one field is required" }),
+    .refine((data) => Object.keys(data).length > 0, {
+      message: "At least one field is required",
+    }),
 };
 
 export const cancelMeetingSchema = {
   params: idParams,
-  body: z.object({ reason: z.string().trim().max(500).optional() }).optional().default({}),
+  body: z
+    .object({ reason: z.string().trim().max(500).optional() })
+    .optional()
+    .default({}),
 };
 
 export const listMeetingsSchema = {

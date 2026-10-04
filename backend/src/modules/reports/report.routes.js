@@ -15,16 +15,35 @@ const visitorReports = authorize(ADMIN, MANAGEMENT, RECEPTIONIST, SECURITY);
 
 export const reportRouter = Router();
 
-reportRouter.get("/visitors", visitorReports, validate(schemas.dateRangeSchema), asyncHandler(controller.visitors));
-reportRouter.get("/active-visitors", visitorReports, asyncHandler(controller.activeVisitors));
+reportRouter.get(
+  "/visitors",
+  visitorReports,
+  validate(schemas.dateRangeSchema),
+  asyncHandler(controller.visitors),
+);
+reportRouter.get(
+  "/active-visitors",
+  visitorReports,
+  asyncHandler(controller.activeVisitors),
+);
 reportRouter.get(
   "/visitor-history",
   visitorReports,
   validate(schemas.visitorHistoryReportSchema),
   asyncHandler(controller.visitorHistory),
 );
-reportRouter.get("/meetings", fullReports, validate(schemas.dateRangeSchema), asyncHandler(controller.meetings));
-reportRouter.get("/rooms", fullReports, validate(schemas.dateRangeSchema), asyncHandler(controller.rooms));
+reportRouter.get(
+  "/meetings",
+  fullReports,
+  validate(schemas.dateRangeSchema),
+  asyncHandler(controller.meetings),
+);
+reportRouter.get(
+  "/rooms",
+  fullReports,
+  validate(schemas.dateRangeSchema),
+  asyncHandler(controller.rooms),
+);
 reportRouter.get(
   "/meeting-history",
   fullReports,
@@ -34,7 +53,19 @@ reportRouter.get(
 
 export const dashboardRouter = Router();
 
-dashboardRouter.get("/admin", authorize(ADMIN), asyncHandler(controller.adminDashboard));
-dashboardRouter.get("/reception", authorize(ADMIN, RECEPTIONIST, SECURITY), asyncHandler(controller.receptionDashboard));
+dashboardRouter.get(
+  "/admin",
+  authorize(ADMIN),
+  asyncHandler(controller.adminDashboard),
+);
+dashboardRouter.get(
+  "/reception",
+  authorize(ADMIN, RECEPTIONIST, SECURITY),
+  asyncHandler(controller.receptionDashboard),
+);
 dashboardRouter.get("/employee", asyncHandler(controller.employeeDashboard));
-dashboardRouter.get("/management", authorize(ADMIN, MANAGEMENT), asyncHandler(controller.managementDashboard));
+dashboardRouter.get(
+  "/management",
+  authorize(ADMIN, MANAGEMENT),
+  asyncHandler(controller.managementDashboard),
+);

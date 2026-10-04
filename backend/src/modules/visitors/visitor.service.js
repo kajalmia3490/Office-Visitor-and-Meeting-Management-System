@@ -20,7 +20,8 @@ export function maskIdentity(value) {
 }
 
 export function serializeVisitor(visitor, currentUser) {
-  const data = typeof visitor.toJSON === "function" ? visitor.toJSON() : { ...visitor };
+  const data =
+    typeof visitor.toJSON === "function" ? visitor.toJSON() : { ...visitor };
   if (!IDENTITY_ROLES.includes(currentUser?.role)) {
     data.identityNumber = maskIdentity(data.identityNumber);
     delete data.address;
@@ -31,7 +32,8 @@ export function serializeVisitor(visitor, currentUser) {
 
 export async function getVisitorOrThrow(id) {
   const visitor = await Visitor.findById(id);
-  if (!visitor) throw ApiError.notFound("Visitor not found", "VISITOR_NOT_FOUND");
+  if (!visitor)
+    throw ApiError.notFound("Visitor not found", "VISITOR_NOT_FOUND");
   return visitor;
 }
 
@@ -50,12 +52,15 @@ function buildSearchFilter(q) {
 
 export async function listVisitors(query, pagination) {
   const filter = query.q ? buildSearchFilter(query.q) : {};
-  if (query.organization) filter.organization = new RegExp(escapeRegex(query.organization), "i");
+  if (query.organization)
+    filter.organization = new RegExp(escapeRegex(query.organization), "i");
   return paginate(Visitor, filter, pagination);
 }
 
 export async function searchVisitors(q, limit = 20) {
-  return Visitor.find(buildSearchFilter(q)).sort({ updatedAt: -1 }).limit(limit);
+  return Visitor.find(buildSearchFilter(q))
+    .sort({ updatedAt: -1 })
+    .limit(limit);
 }
 
 /**
@@ -64,11 +69,14 @@ export async function searchVisitors(q, limit = 20) {
  */
 export async function findOrCreateVisitor(req, details) {
   const matchers = [];
-  if (details.identityNumber) matchers.push({ identityNumber: details.identityNumber });
+  if (details.identityNumber)
+    matchers.push({ identityNumber: details.identityNumber });
   if (details.phone) matchers.push({ phone: details.phone });
   if (details.email) matchers.push({ email: details.email });
 
-  const existing = matchers.length ? await Visitor.findOne({ $or: matchers }) : null;
+  const existing = matchers.length
+    ? await Visitor.findOne({ $or: matchers })
+    : null;
   if (existing) return existing;
 
   return createVisitor(req, details);
@@ -117,7 +125,10 @@ export async function deleteVisitor(req, id) {
     Appointment.exists({ visitor: id }),
   ]);
   if (hasVisits || hasAppointments) {
-    throw ApiError.conflict("Visitor has visit or appointment history and cannot be deleted", "VISITOR_IN_USE");
+    throw ApiError.conflict(
+      "Visitor has visit or appointment history and cannot be deleted",
+      "VISITOR_IN_USE",
+    );
   }
 
   await visitor.deleteOne();
@@ -134,7 +145,11 @@ export async function deleteVisitor(req, id) {
  * Visit and appointment history for a visitor. Employees only see the
  * visits/appointments they hosted.
  */
-export async function getVisitorHistory(currentUser, id, { page, limit, skip }) {
+export async function getVisitorHistory(
+  currentUser,
+  id,
+  { page, limit, skip },
+) {
   const visitor = await getVisitorOrThrow(id);
 
   const scope = { visitor: visitor._id };
@@ -146,7 +161,10 @@ export async function getVisitorHistory(currentUser, id, { page, limit, skip }) 
       .skip(skip)
       .limit(limit)
       .populate("hostEmployee", "name email employeeId")
-      .populate("appointment", "purpose scheduledStartAt scheduledEndAt status"),
+      .populate(
+        "appointment",
+        "purpose scheduledStartAt scheduledEndAt status",
+      ),
     Visit.countDocuments(scope),
     Appointment.find(scope)
       .sort({ scheduledStartAt: -1 })

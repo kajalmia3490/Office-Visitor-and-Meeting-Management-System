@@ -13,7 +13,8 @@ export async function authenticate(req, res, next) {
 
     const user = await resolveAppUser(session);
     if (!user) throw ApiError.unauthenticated();
-    if (!user.isActive) throw ApiError.forbidden("Your account is inactive", "ACCOUNT_INACTIVE");
+    if (!user.isActive)
+      throw ApiError.forbidden("Your account is inactive", "ACCOUNT_INACTIVE");
 
     req.user = user;
     req.authSession = session;

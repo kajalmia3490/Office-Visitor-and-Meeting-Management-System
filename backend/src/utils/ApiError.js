@@ -28,7 +28,10 @@ export class ApiError extends Error {
     return new ApiError(401, message, "UNAUTHENTICATED");
   }
 
-  static forbidden(message = "You do not have permission to perform this action", code = "FORBIDDEN") {
+  static forbidden(
+    message = "You do not have permission to perform this action",
+    code = "FORBIDDEN",
+  ) {
     return new ApiError(403, message, code);
   }
 

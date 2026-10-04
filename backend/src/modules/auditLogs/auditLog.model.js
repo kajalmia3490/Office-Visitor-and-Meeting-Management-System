@@ -22,4 +22,8 @@ auditLogSchema.index({ module: 1, action: 1, createdAt: -1 });
 auditLogSchema.index({ user: 1, createdAt: -1 });
 auditLogSchema.index({ targetId: 1 });
 
-export const AuditLog = mongoose.model("AuditLog", auditLogSchema, "audit_logs");
+export const AuditLog = mongoose.model(
+  "AuditLog",
+  auditLogSchema,
+  "audit_logs",
+);

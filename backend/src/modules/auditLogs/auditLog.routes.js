@@ -6,7 +6,12 @@ import { asyncHandler } from "../../utils/asyncHandler.js";
 import { getPagination } from "../../utils/pagination.js";
 import { sendSuccess } from "../../utils/response.js";
 import { AUDIT_ACTIONS, AUDIT_MODULES, ROLES } from "../../config/constants.js";
-import { dateRangeQuery, objectId, paginationQuery, refineDateRange } from "../../utils/validators.js";
+import {
+  dateRangeQuery,
+  objectId,
+  paginationQuery,
+  refineDateRange,
+} from "../../utils/validators.js";
 import { listAuditLogs } from "./auditLog.service.js";
 
 const listAuditLogsSchema = {
@@ -29,8 +34,15 @@ router.get(
   authorize(ROLES.ADMIN),
   validate(listAuditLogsSchema),
   asyncHandler(async (req, res) => {
-    const { items, meta } = await listAuditLogs(req.query, getPagination(req.query));
-    return sendSuccess(res, { message: "Audit logs retrieved successfully", data: items, meta });
+    const { items, meta } = await listAuditLogs(
+      req.query,
+      getPagination(req.query),
+    );
+    return sendSuccess(res, {
+      message: "Audit logs retrieved successfully",
+      data: items,
+      meta,
+    });
   }),
 );
 

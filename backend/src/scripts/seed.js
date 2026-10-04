@@ -6,18 +6,54 @@ import { MeetingRoom } from "../modules/meetingRooms/meetingRoom.model.js";
 import { ROLES } from "../config/constants.js";
 
 const departments = [
-  { name: "Administration", code: "ADMIN", description: "Office administration" },
-  { name: "Human Resources", code: "HR", description: "People and recruitment" },
-  { name: "Information Technology", code: "IT", description: "Technology and infrastructure" },
+  {
+    name: "Administration",
+    code: "ADMIN",
+    description: "Office administration",
+  },
+  {
+    name: "Human Resources",
+    code: "HR",
+    description: "People and recruitment",
+  },
+  {
+    name: "Information Technology",
+    code: "IT",
+    description: "Technology and infrastructure",
+  },
   { name: "Finance", code: "FIN", description: "Accounts and finance" },
   { name: "Front Desk", code: "FD", description: "Reception and security" },
 ];
 
 const rooms = [
-  { name: "Room 101", roomNumber: "101", location: "Ground floor", capacity: 6, facilities: ["TV", "Whiteboard"] },
-  { name: "Room 102", roomNumber: "102", location: "Ground floor", capacity: 4, facilities: ["Whiteboard"] },
-  { name: "Conference Hall", roomNumber: "201", location: "First floor", capacity: 20, facilities: ["Projector", "Video conferencing", "Microphone"] },
-  { name: "Board Room", roomNumber: "301", location: "Second floor", capacity: 12, facilities: ["Projector", "Video conferencing"] },
+  {
+    name: "Room 101",
+    roomNumber: "101",
+    location: "Ground floor",
+    capacity: 6,
+    facilities: ["TV", "Whiteboard"],
+  },
+  {
+    name: "Room 102",
+    roomNumber: "102",
+    location: "Ground floor",
+    capacity: 4,
+    facilities: ["Whiteboard"],
+  },
+  {
+    name: "Conference Hall",
+    roomNumber: "201",
+    location: "First floor",
+    capacity: 20,
+    facilities: ["Projector", "Video conferencing", "Microphone"],
+  },
+  {
+    name: "Board Room",
+    roomNumber: "301",
+    location: "Second floor",
+    capacity: 12,
+    facilities: ["Projector", "Video conferencing"],
+  },
 ];
 
 async function seed() {
@@ -27,14 +63,26 @@ async function seed() {
   }
 
   await connectDB();
-  await Promise.all([User.syncIndexes(), Department.syncIndexes(), MeetingRoom.syncIndexes()]);
+  await Promise.all([
+    User.syncIndexes(),
+    Department.syncIndexes(),
+    MeetingRoom.syncIndexes(),
+  ]);
 
   for (const department of departments) {
-    await Department.updateOne({ code: department.code }, { $setOnInsert: department }, { upsert: true });
+    await Department.updateOne(
+      { code: department.code },
+      { $setOnInsert: department },
+      { upsert: true },
+    );
   }
 
   for (const room of rooms) {
-    await MeetingRoom.updateOne({ roomNumber: room.roomNumber }, { $setOnInsert: room }, { upsert: true });
+    await MeetingRoom.updateOne(
+      { roomNumber: room.roomNumber },
+      { $setOnInsert: room },
+      { upsert: true },
+    );
   }
 
   const adminDepartment = await Department.findOne({ code: "ADMIN" });
@@ -57,8 +105,12 @@ async function seed() {
     console.log(`Admin user ${email} created`);
   }
 
-  console.log(`Seeded ${departments.length} departments and ${rooms.length} meeting rooms`);
-  console.log(`Sign up / sign in with ${email} through Better Auth to use the admin account.`);
+  console.log(
+    `Seeded ${departments.length} departments and ${rooms.length} meeting rooms`,
+  );
+  console.log(
+    `Sign up / sign in with ${email} through Better Auth to use the admin account.`,
+  );
 }
 
 seed()

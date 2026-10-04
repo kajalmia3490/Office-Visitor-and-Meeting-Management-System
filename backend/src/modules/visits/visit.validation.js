@@ -44,7 +44,10 @@ export const checkInSchema = {
 
 export const checkOutSchema = {
   params: idParams,
-  body: z.object({ notes: z.string().trim().max(1000).optional() }).optional().default({}),
+  body: z
+    .object({ notes: z.string().trim().max(1000).optional() })
+    .optional()
+    .default({}),
 };
 
 export const listVisitsSchema = {

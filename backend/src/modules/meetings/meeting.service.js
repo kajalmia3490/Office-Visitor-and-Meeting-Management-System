@@ -2,7 +2,10 @@ import { Meeting } from "./meeting.model.js";
 import { MAX_MEETING_HOURS } from "./meeting.validation.js";
 import { User } from "../users/user.model.js";
 import { ensureActiveUser } from "../users/user.service.js";
-import { getRoomOrThrow, isRoomBookable } from "../meetingRooms/meetingRoom.service.js";
+import {
+  getRoomOrThrow,
+  isRoomBookable,
+} from "../meetingRooms/meetingRoom.service.js";
 import { notifyMany } from "../notifications/notification.service.js";
 import { recordAudit } from "../auditLogs/auditLog.service.js";
 import {
@@ -33,18 +36,28 @@ function participantFilter(userId) {
 
 function isParticipant(meeting, userId) {
   const id = String(userId);
-  return idOf(meeting.organizer) === id || meeting.attendees.some((a) => idOf(a.user) === id);
+  return (
+    idOf(meeting.organizer) === id ||
+    meeting.attendees.some((a) => idOf(a.user) === id)
+  );
 }
 
 function canManageMeeting(user, meeting) {
-  return user.role === ROLES.ADMIN || idOf(meeting.organizer) === String(user._id);
+  return (
+    user.role === ROLES.ADMIN || idOf(meeting.organizer) === String(user._id)
+  );
 }
 
 /**
  * Double-booking guard: a room is booked when a non-cancelled meeting satisfies
  * existing.startAt < new.endAt AND existing.endAt > new.startAt.
  */
-export async function assertRoomAvailable({ roomId, startAt, endAt, excludeMeetingId }) {
+export async function assertRoomAvailable({
+  roomId,
+  startAt,
+  endAt,
+  excludeMeetingId,
+}) {
   const filter = {
     room: roomId,
     status: { $ne: MEETING_STATUS.CANCELLED },
@@ -53,7 +66,9 @@ export async function assertRoomAvailable({ roomId, startAt, endAt, excludeMeeti
   };
   if (excludeMeetingId) filter._id = { $ne: excludeMeetingId };
 
-  const conflict = await Meeting.findOne(filter).select("_id title startAt endAt");
+  const conflict = await Meeting.findOne(filter).select(
+    "_id title startAt endAt",
+  );
   if (conflict) {
     throw ApiError.conflict("Meeting room is already booked", "ROOM_CONFLICT", {
       conflictingMeeting: {
@@ -69,7 +84,10 @@ export async function assertRoomAvailable({ roomId, startAt, endAt, excludeMeeti
 async function assertRoomUsable(roomId, participantCount) {
   const room = await getRoomOrThrow(roomId);
   if (!isRoomBookable(room)) {
-    throw ApiError.conflict(`Meeting room is not available (status: ${room.status})`, "ROOM_UNAVAILABLE");
+    throw ApiError.conflict(
+      `Meeting room is not available (status: ${room.status})`,
+      "ROOM_UNAVAILABLE",
+    );
   }
   if (participantCount > room.capacity) {
     throw ApiError.conflict(
@@ -81,25 +99,37 @@ async function assertRoomUsable(roomId, participantCount) {
 }
 
 async function normalizeAttendees(attendeeIds = [], organizerId) {
-  const unique = [...new Set(attendeeIds.map(String))].filter((id) => id !== String(organizerId));
+  const unique = [...new Set(attendeeIds.map(String))].filter(
+    (id) => id !== String(organizerId),
+  );
   if (!unique.length) return [];
 
-  const users = await User.find({ _id: { $in: unique }, isActive: true }).select("_id");
+  const users = await User.find({
+    _id: { $in: unique },
+    isActive: true,
+  }).select("_id");
   if (users.length !== unique.length) {
-    throw ApiError.badRequest("One or more attendees were not found or are inactive", "INVALID_ATTENDEES");
+    throw ApiError.badRequest(
+      "One or more attendees were not found or are inactive",
+      "INVALID_ATTENDEES",
+    );
   }
   return unique;
 }
 
 export async function getMeetingOrThrow(id) {
   const meeting = await Meeting.findById(id).populate(MEETING_POPULATE);
-  if (!meeting) throw ApiError.notFound("Meeting not found", "MEETING_NOT_FOUND");
+  if (!meeting)
+    throw ApiError.notFound("Meeting not found", "MEETING_NOT_FOUND");
   return meeting;
 }
 
 export async function getMeeting(user, id) {
   const meeting = await getMeetingOrThrow(id);
-  if (!FULL_ACCESS_ROLES.includes(user.role) && !isParticipant(meeting, user._id)) {
+  if (
+    !FULL_ACCESS_ROLES.includes(user.role) &&
+    !isParticipant(meeting, user._id)
+  ) {
     throw ApiError.forbidden("You are not a participant of this meeting");
   }
   return meeting;
@@ -109,11 +139,18 @@ export async function getMeeting(user, id) {
 export async function syncMeetingStatuses(now = new Date()) {
   await Promise.all([
     Meeting.updateMany(
-      { status: { $in: [MEETING_STATUS.SCHEDULED, MEETING_STATUS.ONGOING] }, endAt: { $lte: now } },
+      {
+        status: { $in: [MEETING_STATUS.SCHEDULED, MEETING_STATUS.ONGOING] },
+        endAt: { $lte: now },
+      },
       { $set: { status: MEETING_STATUS.COMPLETED } },
     ),
     Meeting.updateMany(
-      { status: MEETING_STATUS.SCHEDULED, startAt: { $lte: now }, endAt: { $gt: now } },
+      {
+        status: MEETING_STATUS.SCHEDULED,
+        startAt: { $lte: now },
+        endAt: { $gt: now },
+      },
       { $set: { status: MEETING_STATUS.ONGOING } },
     ),
   ]);
@@ -122,7 +159,9 @@ export async function syncMeetingStatuses(now = new Date()) {
 export async function listMeetings(user, query, pagination) {
   await syncMeetingStatuses();
 
-  const filter = FULL_ACCESS_ROLES.includes(user.role) ? {} : participantFilter(user._id);
+  const filter = FULL_ACCESS_ROLES.includes(user.role)
+    ? {}
+    : participantFilter(user._id);
   if (query.status) filter.status = query.status;
   if (query.room) filter.room = query.room;
   if (query.organizer) filter.organizer = query.organizer;
@@ -132,21 +171,32 @@ export async function listMeetings(user, query, pagination) {
     if (query.to) filter.startAt.$lte = query.to;
   }
 
-  return paginate(Meeting, filter, pagination, { sort: { startAt: 1 }, populate: MEETING_POPULATE });
+  return paginate(Meeting, filter, pagination, {
+    sort: { startAt: 1 },
+    populate: MEETING_POPULATE,
+  });
 }
 
-export async function listUpcomingMeetings(user, { days = 7, limit = 20 } = {}) {
+export async function listUpcomingMeetings(
+  user,
+  { days = 7, limit = 20 } = {},
+) {
   await syncMeetingStatuses();
   const now = new Date();
 
   const filter = {
-    ...(FULL_ACCESS_ROLES.includes(user.role) ? {} : participantFilter(user._id)),
+    ...(FULL_ACCESS_ROLES.includes(user.role)
+      ? {}
+      : participantFilter(user._id)),
     status: { $in: [MEETING_STATUS.SCHEDULED, MEETING_STATUS.ONGOING] },
     endAt: { $gt: now },
     startAt: { $lte: addDays(now, days) },
   };
 
-  return Meeting.find(filter).sort({ startAt: 1 }).limit(limit).populate(MEETING_POPULATE);
+  return Meeting.find(filter)
+    .sort({ startAt: 1 })
+    .limit(limit)
+    .populate(MEETING_POPULATE);
 }
 
 export async function listMyMeetings(user, query, pagination) {
@@ -160,16 +210,27 @@ export async function listMyMeetings(user, query, pagination) {
     if (query.to) filter.startAt.$lte = query.to;
   }
 
-  return paginate(Meeting, filter, pagination, { sort: { startAt: 1 }, populate: MEETING_POPULATE });
+  return paginate(Meeting, filter, pagination, {
+    sort: { startAt: 1 },
+    populate: MEETING_POPULATE,
+  });
 }
 
 export async function createMeeting(req, data) {
-  const organizerId = req.user.role === ROLES.ADMIN && data.organizer ? data.organizer : req.user._id;
-  if (String(organizerId) !== String(req.user._id)) await ensureActiveUser(organizerId, "Organizer");
+  const organizerId =
+    req.user.role === ROLES.ADMIN && data.organizer
+      ? data.organizer
+      : req.user._id;
+  if (String(organizerId) !== String(req.user._id))
+    await ensureActiveUser(organizerId, "Organizer");
 
   const attendeeIds = await normalizeAttendees(data.attendees, organizerId);
   await assertRoomUsable(data.room, attendeeIds.length + 1);
-  await assertRoomAvailable({ roomId: data.room, startAt: data.startAt, endAt: data.endAt });
+  await assertRoomAvailable({
+    roomId: data.room,
+    startAt: data.startAt,
+    endAt: data.endAt,
+  });
 
   const meeting = await Meeting.create({
     title: data.title,
@@ -178,7 +239,10 @@ export async function createMeeting(req, data) {
     room: data.room,
     startAt: data.startAt,
     endAt: data.endAt,
-    attendees: attendeeIds.map((user) => ({ user, status: ATTENDEE_STATUS.INVITED })),
+    attendees: attendeeIds.map((user) => ({
+      user,
+      status: ATTENDEE_STATUS.INVITED,
+    })),
   });
 
   await Promise.all([
@@ -202,21 +266,30 @@ export async function createMeeting(req, data) {
 export async function updateMeeting(req, id, data) {
   const meeting = await getMeetingOrThrow(id);
   if (!canManageMeeting(req.user, meeting)) {
-    throw ApiError.forbidden("Only the organizer or an admin can update this meeting");
+    throw ApiError.forbidden(
+      "Only the organizer or an admin can update this meeting",
+    );
   }
   if (meeting.status !== MEETING_STATUS.SCHEDULED) {
-    throw ApiError.conflict(`A ${meeting.status} meeting cannot be updated`, "MEETING_NOT_EDITABLE");
+    throw ApiError.conflict(
+      `A ${meeting.status} meeting cannot be updated`,
+      "MEETING_NOT_EDITABLE",
+    );
   }
 
   const startAt = data.startAt ?? meeting.startAt;
   const endAt = data.endAt ?? meeting.endAt;
   const roomId = data.room ?? idOf(meeting.room);
 
-  if (endAt <= startAt) throw ApiError.validation("endAt must be after startAt");
+  if (endAt <= startAt)
+    throw ApiError.validation("endAt must be after startAt");
   if (endAt - startAt > MAX_MEETING_HOURS * 60 * 60 * 1000) {
-    throw ApiError.validation(`A meeting cannot be longer than ${MAX_MEETING_HOURS} hours`);
+    throw ApiError.validation(
+      `A meeting cannot be longer than ${MAX_MEETING_HOURS} hours`,
+    );
   }
-  if (data.startAt && data.startAt < new Date()) throw ApiError.validation("startAt cannot be in the past");
+  if (data.startAt && data.startAt < new Date())
+    throw ApiError.validation("startAt cannot be in the past");
 
   const organizerId = idOf(meeting.organizer);
   const previousAttendeeIds = meeting.attendees.map((a) => idOf(a.user));
@@ -233,7 +306,12 @@ export async function updateMeeting(req, id, data) {
     await assertRoomUsable(roomId, attendeeIds.length + 1);
   }
   if (scheduleChanged) {
-    await assertRoomAvailable({ roomId, startAt, endAt, excludeMeetingId: meeting._id });
+    await assertRoomAvailable({
+      roomId,
+      startAt,
+      endAt,
+      excludeMeetingId: meeting._id,
+    });
   }
 
   if (data.title !== undefined) meeting.title = data.title;
@@ -242,7 +320,9 @@ export async function updateMeeting(req, id, data) {
   meeting.startAt = startAt;
   meeting.endAt = endAt;
   if (data.attendees) {
-    const previousStatus = new Map(meeting.attendees.map((a) => [idOf(a.user), a.status]));
+    const previousStatus = new Map(
+      meeting.attendees.map((a) => [idOf(a.user), a.status]),
+    );
     meeting.attendees = attendeeIds.map((user) => ({
       user,
       status: previousStatus.get(user) ?? ATTENDEE_STATUS.INVITED,
@@ -250,8 +330,12 @@ export async function updateMeeting(req, id, data) {
   }
   await meeting.save();
 
-  const newAttendees = attendeeIds.filter((uid) => !previousAttendeeIds.includes(uid));
-  const existingAttendees = attendeeIds.filter((uid) => previousAttendeeIds.includes(uid));
+  const newAttendees = attendeeIds.filter(
+    (uid) => !previousAttendeeIds.includes(uid),
+  );
+  const existingAttendees = attendeeIds.filter((uid) =>
+    previousAttendeeIds.includes(uid),
+  );
 
   await Promise.all([
     recordAudit(req, {
@@ -282,10 +366,17 @@ export async function updateMeeting(req, id, data) {
 export async function cancelMeeting(req, id, reason) {
   const meeting = await getMeetingOrThrow(id);
   if (!canManageMeeting(req.user, meeting)) {
-    throw ApiError.forbidden("Only the organizer or an admin can cancel this meeting");
+    throw ApiError.forbidden(
+      "Only the organizer or an admin can cancel this meeting",
+    );
   }
-  if (![MEETING_STATUS.SCHEDULED, MEETING_STATUS.ONGOING].includes(meeting.status)) {
-    throw ApiError.conflict(`A ${meeting.status} meeting cannot be cancelled`, "MEETING_NOT_CANCELLABLE");
+  if (
+    ![MEETING_STATUS.SCHEDULED, MEETING_STATUS.ONGOING].includes(meeting.status)
+  ) {
+    throw ApiError.conflict(
+      `A ${meeting.status} meeting cannot be cancelled`,
+      "MEETING_NOT_CANCELLABLE",
+    );
   }
 
   meeting.status = MEETING_STATUS.CANCELLED;

@@ -13,13 +13,33 @@ const canManage = authorize(ROLES.ADMIN);
 
 router
   .route("/")
-  .get(canView, validate(schemas.listDepartmentsSchema), asyncHandler(controller.list))
-  .post(canManage, validate(schemas.createDepartmentSchema), asyncHandler(controller.create));
+  .get(
+    canView,
+    validate(schemas.listDepartmentsSchema),
+    asyncHandler(controller.list),
+  )
+  .post(
+    canManage,
+    validate(schemas.createDepartmentSchema),
+    asyncHandler(controller.create),
+  );
 
 router
   .route("/:id")
-  .get(canView, validate(schemas.departmentIdSchema), asyncHandler(controller.getById))
-  .patch(canManage, validate(schemas.updateDepartmentSchema), asyncHandler(controller.update))
-  .delete(canManage, validate(schemas.departmentIdSchema), asyncHandler(controller.remove));
+  .get(
+    canView,
+    validate(schemas.departmentIdSchema),
+    asyncHandler(controller.getById),
+  )
+  .patch(
+    canManage,
+    validate(schemas.updateDepartmentSchema),
+    asyncHandler(controller.update),
+  )
+  .delete(
+    canManage,
+    validate(schemas.departmentIdSchema),
+    asyncHandler(controller.remove),
+  );
 
 export default router;

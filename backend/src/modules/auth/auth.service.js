@@ -17,7 +17,8 @@ export async function resolveAppUser(session) {
     user = await User.findOne({ email });
     if (user) {
       user.authUserId = authUser.id;
-      if (!user.profileImage && authUser.image) user.profileImage = authUser.image;
+      if (!user.profileImage && authUser.image)
+        user.profileImage = authUser.image;
       await user.save();
     } else {
       try {
@@ -31,13 +32,20 @@ export async function resolveAppUser(session) {
       } catch (err) {
         // A concurrent request may have provisioned the same user.
         if (err?.code !== 11000) throw err;
-        user = await User.findOne({ $or: [{ authUserId: authUser.id }, { email }] });
+        user = await User.findOne({
+          $or: [{ authUserId: authUser.id }, { email }],
+        });
       }
     }
   }
 
-  const sessionCreatedAt = session.session?.createdAt ? new Date(session.session.createdAt) : null;
-  if (sessionCreatedAt && (!user.lastLoginAt || user.lastLoginAt < sessionCreatedAt)) {
+  const sessionCreatedAt = session.session?.createdAt
+    ? new Date(session.session.createdAt)
+    : null;
+  if (
+    sessionCreatedAt &&
+    (!user.lastLoginAt || user.lastLoginAt < sessionCreatedAt)
+  ) {
     user.lastLoginAt = sessionCreatedAt;
     await user.save();
   }
