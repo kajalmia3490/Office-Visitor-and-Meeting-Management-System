@@ -20,7 +20,7 @@ const visitorSchema = new mongoose.Schema(
     identityType: { type: String, enum: IDENTITY_TYPES },
     identityNumber: { type: String, trim: true },
     photo: { type: String, trim: true },
-    emergencyContact: { type: semergencyContactSchema },
+    emergencyContact: { type: emergencyContactSchema },
   },
   { timestamps: true, toJSON: { versionKey: false } },
 );
