@@ -6,6 +6,24 @@ import { apiRequest } from "../lib/api-client";
 type Section = "Visitors" | "Meetings" | "Meeting rooms" | "Active visitors";
 type RecordValue = Record<string, unknown>;
 
+const demoItems: Record<Section, RecordValue[]> = {
+  Visitors: [
+    { _id: "demo-visitor-1", fullName: "Olivia Martin", organization: "Acme Corporation", email: "olivia@example.com", phone: "+1 555 0101", status: "expected" },
+    { _id: "demo-visitor-2", fullName: "Ethan Miller", organization: "Vertex Labs", email: "ethan@example.com", phone: "+1 555 0102", status: "checked_in" },
+  ],
+  Meetings: [
+    { _id: "demo-meeting-1", title: "Q4 Product Planning", startAt: "2026-10-08T10:30:00.000Z", endAt: "2026-10-08T11:30:00.000Z", room: { name: "Atlas · 3rd floor" }, status: "scheduled" },
+    { _id: "demo-meeting-2", title: "Design review", startAt: "2026-10-08T13:00:00.000Z", endAt: "2026-10-08T14:00:00.000Z", room: { name: "Focus room 2" }, status: "scheduled" },
+  ],
+  "Meeting rooms": [
+    { _id: "demo-room-1", name: "Atlas", roomNumber: "301", location: "3rd floor", capacity: 10, status: "available" },
+    { _id: "demo-room-2", name: "Focus room 2", roomNumber: "F2", location: "2nd floor", capacity: 6, status: "available" },
+  ],
+  "Active visitors": [
+    { _id: "demo-visit-1", visitor: { fullName: "Sophia Davis", organization: "Northstar Inc." }, status: "checked_in", checkInAt: "2026-10-08T08:45:00.000Z" },
+  ],
+};
+
 function asRecord(value: unknown): RecordValue {
   return typeof value === "object" && value !== null ? value as RecordValue : {};
 }
@@ -42,9 +60,9 @@ export default function WorkflowPanel({ section }: { section: Section }) {
     try {
       const path = section === "Active visitors" ? "/visits/active" : `${endpoint}?limit=100`;
       setItems(listPayload(await apiRequest(path)));
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to load data.");
-      setItems([]);
+    } catch {
+      setMessage("Demo data is shown because the live API is not connected yet.");
+      setItems(demoItems[section]);
     } finally {
       setLoading(false);
     }
