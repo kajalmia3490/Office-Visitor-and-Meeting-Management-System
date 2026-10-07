@@ -2,8 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { dashboardService, type DashboardData } from "../lib/dashboard-service";
+import WorkflowPanel from "./workflow-panel";
 
 type Role = "admin" | "reception" | "security" | "employee" | "management";
+type Section = "Dashboard" | "Visitors" | "Meetings" | "Meeting rooms" | "Active visitors";
 
 const roleLabels: Record<Role, string> = {
   admin: "Administrator",
@@ -154,10 +156,14 @@ function Sidebar({
   role,
   open,
   onClose,
+  section,
+  onNavigate,
 }: {
   role: Role;
   open: boolean;
   onClose: () => void;
+  section: Section;
+  onNavigate: (section: Section) => void;
 }) {
   const canAdmin = role === "admin";
   return (
@@ -189,11 +195,12 @@ function Sidebar({
                 <p>{group.label}</p>
                 {group.items.map(([label, icon]) => (
                   <button
-                    className={
-                      label === "Dashboard" ? "nav-item active" : "nav-item"
-                    }
+                    className={label === section ? "nav-item active" : "nav-item"}
                     key={label}
-                    onClick={onClose}
+                    onClick={() => {
+                      onNavigate(label as Section);
+                      onClose();
+                    }}
                   >
                     <span className="nav-icon">{icon}</span>
                     {label}
@@ -234,6 +241,7 @@ function Sidebar({
 
 export default function Home() {
   const [role, setRole] = useState<Role>("admin");
+  const [section, setSection] = useState<Section>("Dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [dark, setDark] = useState(false);
   const [data, setData] = useState<DashboardData | null>(null);
@@ -279,6 +287,8 @@ export default function Home() {
         role={role}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        section={section}
+        onNavigate={setSection}
       />
       <main className="main-content">
         <header className="topbar">
@@ -292,7 +302,7 @@ export default function Home() {
           <div className="breadcrumb">
             <span>Workspace</span>
             <b>/</b>
-            <strong>Dashboard</strong>
+            <strong>{section}</strong>
           </div>
           <div className="top-actions">
             <label className="search">
@@ -340,7 +350,7 @@ export default function Home() {
                 <option value="employee">Employee view</option>
                 <option value="management">Management view</option>
               </select>
-              <button className="button primary">
+              <button className="button primary" onClick={() => setSection("Meetings")}>
                 ＋ <span>Quick action</span>
               </button>
             </div>
@@ -351,7 +361,9 @@ export default function Home() {
               Connect the backend to load live data.
             </div>
           )}
-          {status === "loading" ? (
+          {section !== "Dashboard" ? (
+            <WorkflowPanel section={section} />
+          ) : status === "loading" ? (
             <div className="loading-state">
               <span className="spinner" />
               Loading dashboard...
