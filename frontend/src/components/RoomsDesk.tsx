@@ -6,9 +6,10 @@ import { api } from '../services/api';
 interface RoomsDeskProps {
   rooms: Room[];
   onRefresh: () => void;
+  onReserveRoom: (room: Room) => void;
 }
 
-export const RoomsDesk: React.FC<RoomsDeskProps> = ({ rooms, onRefresh }) => {
+export const RoomsDesk: React.FC<RoomsDeskProps> = ({ rooms, onRefresh, onReserveRoom }) => {
   const [showDrawer, setShowDrawer] = useState(false);
   const [formData, setFormData] = useState({
     RoomName: '',
@@ -85,7 +86,7 @@ export const RoomsDesk: React.FC<RoomsDeskProps> = ({ rooms, onRefresh }) => {
             </div>
 
             <button
-              onClick={() => alert(`Selected ${room.RoomName} for reservation!`)}
+              onClick={() => onReserveRoom(room)}
               className="mt-5 w-full py-2 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold transition-colors"
             >
               Quick Reserve

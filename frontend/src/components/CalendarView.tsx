@@ -8,11 +8,7 @@ import {
   CheckCircle2, 
   ChevronLeft, 
   ChevronRight, 
-  Calendar as CalendarIcon,
-  SunMedium,
-  Umbrella,
-  Briefcase,
-  Users
+  Calendar as CalendarIcon
 } from 'lucide-react';
 import { Meeting } from '../types';
 
@@ -29,6 +25,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<'list' | 'upcoming' | 'complete'>('list');
   const [viewMode, setViewMode] = useState<'Monthly' | 'Weekly' | 'Daily'>('Monthly');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [visibleDate, setVisibleDate] = useState(new Date());
 
   // Preview Cards from the Sage template
   const upcomingMeeting = meetings.find(m => m.MeetingType === 'Meeting') || meetings[0];
@@ -36,66 +34,27 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const upcomingHoliday = meetings.find(m => m.MeetingType === 'Holiday');
   const upcomingLeave = meetings.find(m => m.MeetingType === 'Leave');
 
-  // Days in month simulation
   const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
-  // 35-cell grid simulation for August/October calendar
-  const calendarCells = [
-    { day: 28, isPrevMonth: true, items: [] },
-    { day: 29, isPrevMonth: true, items: [] },
-    { 
-      day: 30, 
-      isPrevMonth: true, 
-      items: [
-        { title: '10:00A - Marketing Review', color: 'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-950/40 dark:border-indigo-800 dark:text-indigo-300' },
-        { title: '10:40A - Creative UI Handover', color: 'bg-purple-50 border-purple-200 text-purple-700 dark:bg-purple-950/40 dark:border-purple-800 dark:text-purple-300' },
-        { title: 'Birth... Sarah Conner', color: 'bg-rose-50 border-rose-200 text-rose-700 dark:bg-rose-950/40 dark:border-rose-800 dark:text-rose-300' }
-      ] 
-    },
-    { day: 31, isPrevMonth: true, items: [] },
-    { 
-      day: 1, 
-      items: [
-        { title: '12:40P - Marketing Sync', color: 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-950/40 dark:border-blue-800 dark:text-blue-300' },
-        { title: '2:30 P - Client Pitch', color: 'bg-purple-50 border-purple-200 text-purple-700 dark:bg-purple-950/40 dark:border-purple-800 dark:text-purple-300' }
-      ] 
-    },
-    { day: 2, items: [] },
-    { day: 3, items: [] },
-    { 
-      day: 4, 
-      items: [
-        { title: '🏖️ Holiday - Independence', color: 'bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-300' }
-      ] 
-    },
-    { 
-      day: 5, 
-      items: [
-        { title: '1:00 P - Client Onboarding', color: 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-950/40 dark:border-blue-800 dark:text-blue-300' },
-        { title: '2:30 P - Front Desk Sync', color: 'bg-purple-50 border-purple-200 text-purple-700 dark:bg-purple-950/40 dark:border-purple-800 dark:text-purple-300' },
-        { title: '4:30 P - Workshop Kickoff', color: 'bg-cyan-50 border-cyan-200 text-cyan-700 dark:bg-cyan-950/40 dark:border-cyan-800 dark:text-cyan-300' }
-      ] 
-    },
-    { day: 6, items: [] },
-    { 
-      day: 7, 
-      items: [
-        { title: '🌴 Leave - Alex M.', color: 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300' },
-        { title: '🌴 Leave - Barbara G.', color: 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300' },
-        { title: '3:30 P - Product Demo', color: 'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-950/40 dark:border-indigo-800 dark:text-indigo-300' }
-      ] 
-    },
-    { day: 8, items: [] },
-    { day: 9, items: [] },
-    { day: 10, items: [] },
-    { day: 11, items: [] },
-    { day: 12, items: [] },
-    { day: 13, items: [] },
-    { day: 14, items: [] },
-    { day: 15, items: [] },
-    { day: 16, items: [] },
-    { day: 17, items: [] },
-  ];
+  const filteredMeetings = meetings.filter((meeting) => {
+    const matchesSearch = `${meeting.Title} ${meeting.HostName || ''} ${meeting.RoomName || ''}`.toLowerCase().includes(searchTerm.toLowerCase());
+    const start = new Date(meeting.StartTime);
+    const isComplete = meeting.Status === 'Completed' || start < new Date();
+    return matchesSearch && (activeSubTab === 'list' || (activeSubTab === 'upcoming' && !isComplete) || (activeSubTab === 'complete' && isComplete));
+  });
+  const monthStart = new Date(visibleDate.getFullYear(), visibleDate.getMonth(), 1);
+  const firstCell = new Date(monthStart);
+  firstCell.setDate(1 - monthStart.getDay());
+  const calendarCells = Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(firstCell);
+    date.setDate(firstCell.getDate() + index);
+    const dayMeetings = filteredMeetings.filter((meeting) => {
+      const start = new Date(meeting.StartTime);
+      return start.getFullYear() === date.getFullYear() && start.getMonth() === date.getMonth() && start.getDate() === date.getDate();
+    });
+    return { date, dayMeetings, isCurrentMonth: date.getMonth() === visibleDate.getMonth() };
+  });
+  const formatDate = (value: Date) => value.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  const meetingColor = (type: Meeting['MeetingType']) => type === 'Holiday' ? 'bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-300' : type === 'Leave' ? 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300' : 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-950/40 dark:border-blue-800 dark:text-blue-300';
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -144,13 +103,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Upcoming Holiday</span>
           </div>
           <h3 className="font-bold text-slate-900 dark:text-white text-base truncate">
-            Creative UI Workshop
+            {upcomingHoliday?.Title || 'No upcoming holiday'}
           </h3>
-          <p className="text-xs text-slate-400 mt-1">20th. August 2026</p>
+          <p className="text-xs text-slate-400 mt-1">{upcomingHoliday ? formatDate(new Date(upcomingHoliday.StartTime)) : 'Schedule is clear'}</p>
           
           <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-400">
             <Clock className="w-3.5 h-3.5" />
-            <span>1 Day Off</span>
+            <span>{upcomingHoliday ? upcomingHoliday.Status : 'No holiday scheduled'}</span>
           </div>
         </div>
 
@@ -161,13 +120,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Upcoming Event</span>
           </div>
           <h3 className="font-bold text-slate-900 dark:text-white text-base truncate">
-            Executive Briefing
+            {upcomingWorkshop?.Title || 'No upcoming event'}
           </h3>
-          <p className="text-xs text-slate-400 mt-1">10:40AM - 12:05PM (4th. Oct)</p>
+          <p className="text-xs text-slate-400 mt-1">{upcomingWorkshop ? formatDate(new Date(upcomingWorkshop.StartTime)) : 'Schedule is clear'}</p>
           
           <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-400 truncate">
             <MapPin className="w-3.5 h-3.5 shrink-0 text-slate-400" />
-            <span className="truncate">775 Rolling Green Rd.</span>
+            <span className="truncate">{upcomingWorkshop?.RoomLocation || 'No room assigned'}</span>
           </div>
         </div>
 
@@ -180,18 +139,18 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           <div className="flex items-center gap-2">
             <img 
               src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150" 
-              alt="Barbara" 
+              alt={upcomingLeave?.HostName || 'Employee'} 
               className="w-5 h-5 rounded-full object-cover" 
             />
             <h3 className="font-bold text-slate-900 dark:text-white text-base truncate">
-              Barbara Gordon
+              {upcomingLeave?.HostName || 'No leave scheduled'}
             </h3>
           </div>
-          <p className="text-xs text-slate-400 mt-1">6th. October 2026</p>
+          <p className="text-xs text-slate-400 mt-1">{upcomingLeave ? formatDate(new Date(upcomingLeave.StartTime)) : 'Schedule is clear'}</p>
           
           <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-400">
             <Clock className="w-3.5 h-3.5" />
-            <span>Full Day Leave</span>
+            <span>{upcomingLeave ? upcomingLeave.Status : 'No leave scheduled'}</span>
           </div>
         </div>
       </div>
@@ -203,12 +162,17 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           <input
             type="text"
             placeholder="Search anything ..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           />
         </div>
 
         {/* View Switchers & Date Picker */}
-        <div className="flex items-center gap-3 self-end md:self-auto">
+        <div className="flex items-center gap-2 self-end md:self-auto">
+        <button type="button" onClick={() => setVisibleDate(new Date())} className="px-3 py-2 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-semibold">Today</button>
+        <button type="button" aria-label="Previous month" onClick={() => setVisibleDate(new Date(visibleDate.getFullYear(), visibleDate.getMonth() - 1, 1))} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800"><ChevronLeft className="w-4 h-4" /></button>
+        <button type="button" aria-label="Next month" onClick={() => setVisibleDate(new Date(visibleDate.getFullYear(), visibleDate.getMonth() + 1, 1))} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800"><ChevronRight className="w-4 h-4" /></button>
           {/* Monthly Dropdown */}
           <select
             value={viewMode}
@@ -223,7 +187,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           {/* Date Indicator Pill */}
           <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300">
             <CalendarIcon className="w-3.5 h-3.5 text-slate-500" />
-            <span>24. October 2026</span>
+            <span>{formatDate(visibleDate)}</span>
           </div>
         </div>
       </div>
@@ -278,30 +242,32 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
         {/* 7-column Calendar Cells */}
         <div className="grid grid-cols-7 divide-x divide-y divide-slate-100 dark:divide-slate-800">
-          {calendarCells.map((cell, idx) => (
+          {calendarCells.map((cell) => (
             <div
-              key={idx}
+              key={cell.date.toISOString()}
               className={`min-h-[110px] p-2.5 flex flex-col justify-between transition-colors hover:bg-slate-50/70 dark:hover:bg-slate-800/40 ${
-                cell.isPrevMonth ? 'bg-slate-50/30 dark:bg-slate-900/40 opacity-60' : ''
+                !cell.isCurrentMonth ? 'bg-slate-50/30 dark:bg-slate-900/40 opacity-60' : ''
               }`}
             >
               <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                {cell.day}
+                {cell.date.getDate()}
               </div>
 
               {/* Badges / Events inside cell */}
               <div className="space-y-1 my-1">
-                {cell.items.map((item, itemIdx) => (
-                  <div
-                    key={itemIdx}
-                    className={`text-[10px] font-medium px-2 py-0.5 rounded-lg border truncate shadow-2xs ${item.color}`}
+                {cell.dayMeetings.slice(0, 3).map((meeting) => (
+                  <button
+                    type="button"
+                    key={meeting.MeetingId}
+                    onClick={() => onSelectMeeting(meeting)}
+                    className={`w-full text-left text-[10px] font-medium px-2 py-0.5 rounded-lg border truncate shadow-2xs ${meetingColor(meeting.MeetingType)}`}
                   >
-                    {item.title}
-                  </div>
+                    {new Date(meeting.StartTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {meeting.Title}
+                  </button>
                 ))}
-                {cell.items.length > 2 && (
-                  <button className="text-[10px] font-semibold text-slate-400 hover:text-blue-600 text-center w-full py-0.5 bg-slate-100 dark:bg-slate-800 rounded">
-                    More
+                {cell.dayMeetings.length > 3 && (
+                  <button type="button" onClick={() => onSelectMeeting(cell.dayMeetings[3])} className="text-[10px] font-semibold text-slate-400 hover:text-blue-600 text-center w-full py-0.5 bg-slate-100 dark:bg-slate-800 rounded">
+                    +{cell.dayMeetings.length - 3} more
                   </button>
                 )}
               </div>

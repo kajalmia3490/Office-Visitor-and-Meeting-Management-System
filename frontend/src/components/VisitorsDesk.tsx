@@ -1,16 +1,20 @@
 import React, { useState } from 'react';
 import { UserPlus, Search, Building, Phone, Shield, X, Mail, MapPin } from 'lucide-react';
-import { Visitor } from '../types';
-import { api } from '../services/api';
+import { Visitor, Meeting } from '../types';
+import { api, getApiErrorMessage } from '../services/api';
 
 interface VisitorsDeskProps {
   visitors: Visitor[];
+  meetings: Meeting[];
   onRefresh: () => void;
+  onError?: (message: string) => void;
 }
 
-export const VisitorsDesk: React.FC<VisitorsDeskProps> = ({ visitors, onRefresh }) => {
+export const VisitorsDesk: React.FC<VisitorsDeskProps> = ({ visitors, meetings, onRefresh, onError }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddDrawer, setShowAddDrawer] = useState(false);
+  const [selectedVisitor, setSelectedVisitor] = useState<Visitor | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     FullName: '',
     Email: '',
@@ -28,10 +32,24 @@ export const VisitorsDesk: React.FC<VisitorsDeskProps> = ({ visitors, onRefresh 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api.registerVisitor(formData);
-    setShowAddDrawer(false);
-    setFormData({ FullName: '', Email: '', Phone: '', Company: '', GovtIdNumber: '', Address: '' });
-    onRefresh();
+    try {
+      if (selectedVisitor && isEditing) await api.updateVisitor(selectedVisitor.VisitorId, formData);
+      else await api.registerVisitor(formData);
+      setShowAddDrawer(false);
+      setSelectedVisitor(null);
+      setIsEditing(false);
+      setFormData({ FullName: '', Email: '', Phone: '', Company: '', GovtIdNumber: '', Address: '' });
+      onRefresh();
+    } catch (error) {
+      onError?.(getApiErrorMessage(error, 'Unable to save visitor.'));
+    }
+  };
+
+  const openEdit = (visitor: Visitor) => {
+    setSelectedVisitor(visitor);
+    setIsEditing(true);
+    setFormData({ FullName: visitor.FullName, Email: visitor.Email, Phone: visitor.Phone, Company: visitor.Company || '', GovtIdNumber: visitor.GovtIdNumber || '', Address: visitor.Address || '' });
+    setShowAddDrawer(true);
   };
 
   return (
@@ -80,7 +98,7 @@ export const VisitorsDesk: React.FC<VisitorsDeskProps> = ({ visitors, onRefresh 
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {filteredVisitors.map((v) => (
-                <tr key={v.VisitorId} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                <tr key={v.VisitorId} onClick={() => setSelectedVisitor(v)} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 font-bold flex items-center justify-center text-xs">
@@ -111,9 +129,7 @@ export const VisitorsDesk: React.FC<VisitorsDeskProps> = ({ visitors, onRefresh 
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50">
-                      Approved
-                    </span>
+                    <div className="flex items-center gap-2"><span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50">Approved</span><button type="button" onClick={(e) => { e.stopPropagation(); openEdit(v); }} className="text-xs text-blue-600 hover:underline">Edit</button></div>
                   </td>
                 </tr>
               ))}
@@ -135,7 +151,7 @@ export const VisitorsDesk: React.FC<VisitorsDeskProps> = ({ visitors, onRefresh 
             <div className="w-screen max-w-md bg-white dark:bg-slate-900 shadow-2xl border-l border-slate-200 dark:border-slate-800 flex flex-col justify-between animate-in slide-in-from-right duration-300">
               <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">Register Visitor</h3>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">{isEditing ? 'Edit Visitor' : 'Register Visitor'}</h3>
                   <p className="text-xs text-slate-400 mt-0.5">Pre-register incoming guests for security access</p>
                 </div>
                 <button
@@ -246,6 +262,17 @@ export const VisitorsDesk: React.FC<VisitorsDeskProps> = ({ visitors, onRefresh 
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {selectedVisitor && !showAddDrawer && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/50 p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6">
+            <div className="flex justify-between items-start"><div><h3 className="text-xl font-bold text-slate-900 dark:text-white">{selectedVisitor.FullName}</h3><p className="text-sm text-slate-400">{selectedVisitor.Email}</p></div><button type="button" onClick={() => setSelectedVisitor(null)}><X className="w-5 h-5" /></button></div>
+            <div className="mt-5 grid grid-cols-2 gap-3 text-sm text-slate-600 dark:text-slate-300"><span>Company: {selectedVisitor.Company || 'Independent'}</span><span>Phone: {selectedVisitor.Phone}</span><span>National ID: {selectedVisitor.GovtIdNumber || 'Not provided'}</span><span>Address: {selectedVisitor.Address || 'Not provided'}</span></div>
+            <div className="mt-5 border-t border-slate-100 dark:border-slate-800 pt-4"><h4 className="font-semibold text-sm mb-2">Meeting history</h4>{meetings.filter((meeting) => meeting.Attendees?.some((attendee) => attendee.VisitorId === selectedVisitor.VisitorId)).map((meeting) => <div key={meeting.MeetingId} className="flex justify-between text-xs py-1"><span>{meeting.Title}</span><span className="text-slate-400">{new Date(meeting.StartTime).toLocaleDateString()}</span></div>)}{!meetings.some((meeting) => meeting.Attendees?.some((attendee) => attendee.VisitorId === selectedVisitor.VisitorId)) && <p className="text-xs text-slate-400">No meeting history.</p>}</div>
+            <div className="flex justify-end mt-5"><button type="button" onClick={() => openEdit(selectedVisitor)} className="px-3 py-2 rounded-xl bg-blue-600 text-white text-xs font-semibold">Edit visitor</button></div>
           </div>
         </div>
       )}

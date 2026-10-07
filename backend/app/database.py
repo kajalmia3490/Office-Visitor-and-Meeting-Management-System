@@ -41,6 +41,8 @@ try:
         max_overflow=20,
         fast_executemany=True
     )
+    with engine.connect():
+        pass
 except Exception as e:
     print(f"[Warning] Creating engine fallback: {e}")
     engine = create_engine("sqlite:///./office_visitor_fallback.db", connect_args={"check_same_thread": False})

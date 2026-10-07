@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Calendar, Clock, Building, Video, User, Plus } from 'lucide-react';
 import { Visitor, Room, User as UserType } from '../types';
-import { api } from '../services/api';
+import { api, getApiErrorMessage } from '../services/api';
+import { Meeting } from '../types';
 
 interface CreateMeetingModalProps {
   isOpen: boolean;
@@ -10,6 +11,9 @@ interface CreateMeetingModalProps {
   visitors: Visitor[];
   rooms: Room[];
   users: UserType[];
+  initialRoomId?: number;
+  editingMeeting?: Meeting | null;
+  onError?: (message: string) => void;
 }
 
 export const CreateMeetingModal: React.FC<CreateMeetingModalProps> = ({
@@ -19,18 +23,40 @@ export const CreateMeetingModal: React.FC<CreateMeetingModalProps> = ({
   visitors,
   rooms,
   users,
+  initialRoomId,
+  editingMeeting,
+  onError,
 }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [meetingType, setMeetingType] = useState('Meeting');
+  const [meetingType, setMeetingType] = useState<Meeting['MeetingType']>('Meeting');
   const [hostId, setHostId] = useState<number>(users[0]?.UserId || 1);
-  const [roomId, setRoomId] = useState<number>(rooms[0]?.RoomId || 1);
+  const [roomId, setRoomId] = useState<number>(initialRoomId || rooms[0]?.RoomId || 1);
   const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
   const [startTime, setStartTime] = useState('10:00');
   const [endTime, setEndTime] = useState('11:00');
   const [selectedVisitorIds, setSelectedVisitorIds] = useState<number[]>([]);
   const [videoCallUrl, setVideoCallUrl] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (editingMeeting) {
+      const start = new Date(editingMeeting.StartTime);
+      const end = new Date(editingMeeting.EndTime);
+      setTitle(editingMeeting.Title);
+      setDescription(editingMeeting.Description || '');
+      setMeetingType(editingMeeting.MeetingType);
+      setHostId(editingMeeting.HostId);
+      setRoomId(editingMeeting.RoomId || rooms[0]?.RoomId || 1);
+      setStartDate(start.toISOString().slice(0, 10));
+      setStartTime(start.toTimeString().slice(0, 5));
+      setEndTime(end.toTimeString().slice(0, 5));
+      setVideoCallUrl(editingMeeting.VideoCallUrl || '');
+      setSelectedVisitorIds(editingMeeting.Attendees?.map((attendee) => attendee.VisitorId) || []);
+    } else if (initialRoomId) {
+      setRoomId(initialRoomId);
+    }
+  }, [editingMeeting, initialRoomId, rooms]);
 
   if (!isOpen) return null;
 
@@ -41,7 +67,7 @@ export const CreateMeetingModal: React.FC<CreateMeetingModalProps> = ({
     const startDateTime = new Date(`${startDate}T${startTime}:00`).toISOString();
     const endDateTime = new Date(`${startDate}T${endTime}:00`).toISOString();
 
-    await api.createMeeting({
+    const data = {
       Title: title,
       Description: description,
       MeetingType: meetingType,
@@ -51,12 +77,18 @@ export const CreateMeetingModal: React.FC<CreateMeetingModalProps> = ({
       EndTime: endDateTime,
       VideoCallUrl: videoCallUrl || 'https://zoom.us/j/meeting-link',
       VisitorIds: selectedVisitorIds,
-      Status: 'Scheduled'
-    });
-
-    setLoading(false);
-    onSuccess();
-    onClose();
+      Status: 'Scheduled' as const
+    };
+    try {
+      if (editingMeeting) await api.updateMeeting(editingMeeting.MeetingId, data);
+      else await api.createMeeting(data);
+      onSuccess();
+      onClose();
+    } catch (error) {
+      onError?.(getApiErrorMessage(error, 'Unable to save meeting.'));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const toggleVisitor = (vid: number) => {
@@ -82,7 +114,7 @@ export const CreateMeetingModal: React.FC<CreateMeetingModalProps> = ({
           <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <div>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <span>Schedule Meeting / Event</span>
+                <span>{editingMeeting ? 'Edit Meeting / Event' : 'Schedule Meeting / Event'}</span>
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">
                 Fill in the details below to book room & generate digital passes
@@ -135,7 +167,7 @@ export const CreateMeetingModal: React.FC<CreateMeetingModalProps> = ({
                 </label>
                 <select
                   value={meetingType}
-                  onChange={(e) => setMeetingType(e.target.value)}
+                  onChange={(e) => setMeetingType(e.target.value as Meeting['MeetingType'])}
                   className="w-full bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none"
                 >
                   <option value="Meeting">Meeting (Client/Guest)</option>

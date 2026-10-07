@@ -6,6 +6,7 @@ import { FastCheckInView } from './components/FastCheckInView';
 import { VisitorsDesk } from './components/VisitorsDesk';
 import { RoomsDesk } from './components/RoomsDesk';
 import { CreateMeetingModal } from './components/CreateMeetingModal';
+import { MeetingDetailsModal } from './components/MeetingDetailsModal';
 import { api } from './services/api';
 import { Meeting, Visitor, Room, User, NotificationItem } from './types';
 import { 
@@ -41,6 +42,10 @@ export function App() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isQuickSearchOpen, setIsQuickSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
+  const [editingMeeting, setEditingMeeting] = useState<Meeting | null>(null);
+  const [reservedRoomId, setReservedRoomId] = useState<number | undefined>();
 
   // Apply dark mode class to root
   useEffect(() => {
@@ -85,12 +90,33 @@ export function App() {
   };
 
   useEffect(() => {
+    if (!toast) return;
+    const timer = window.setTimeout(() => setToast(null), 4000);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
+
+  useEffect(() => {
     loadData();
   }, []);
 
   const handleMarkRead = async (id: number) => {
-    await api.markNotificationRead(id);
-    setNotifications(prev => prev.map(n => n.NotificationId === id ? { ...n, IsRead: true } : n));
+    try {
+      await api.markNotificationRead(id);
+      setNotifications(prev => prev.map(n => n.NotificationId === id ? { ...n, IsRead: true } : n));
+    } catch {
+      setToast({ type: 'error', message: 'Unable to mark notification as read.' });
+    }
+  };
+
+  const handleDeleteMeeting = async (meeting: Meeting) => {
+    try {
+      await api.deleteMeeting(meeting.MeetingId);
+      setSelectedMeeting(null);
+      await loadData();
+      setToast({ type: 'success', message: 'Meeting deleted successfully.' });
+    } catch (error) {
+      setToast({ type: 'error', message: error instanceof Error ? error.message : 'Unable to delete meeting.' });
+    }
   };
 
   // Render Dashboard Overview (Full bleed, border-connected, zero extra margins)
@@ -334,15 +360,15 @@ export function App() {
             <CalendarView
               meetings={meetings}
               onOpenCreateModal={() => setIsCreateModalOpen(true)}
-              onSelectMeeting={(m) => alert(`Selected meeting: ${m.Title}`)}
+              onSelectMeeting={(m) => setSelectedMeeting(m)}
             />
           )}
           {currentTab === 'visitors' && (
-            <VisitorsDesk visitors={visitors} onRefresh={loadData} />
+            <VisitorsDesk visitors={visitors} meetings={meetings} onRefresh={loadData} onError={(message) => setToast({ type: 'error', message })} />
           )}
-          {currentTab === 'checkin' && <FastCheckInView />}
+          {currentTab === 'checkin' && <FastCheckInView onSuccess={(message) => setToast({ type: 'success', message })} onError={(message) => setToast({ type: 'error', message })} onRefresh={loadData} />}
           {currentTab === 'rooms' && (
-            <RoomsDesk rooms={rooms} onRefresh={loadData} />
+            <RoomsDesk rooms={rooms} onRefresh={loadData} onReserveRoom={(room) => { setReservedRoomId(room.RoomId); setIsCreateModalOpen(true); }} />
           )}
           {(currentTab === 'company' || currentTab === 'activities' || currentTab === 'job_management' || currentTab === 'payroll' || currentTab === 'settings') && (
             <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200/80 dark:border-slate-800 text-center py-16">
@@ -359,12 +385,30 @@ export function App() {
       {/* Schedule Meeting Drawer */}
       <CreateMeetingModal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSuccess={loadData}
+        onClose={() => { setIsCreateModalOpen(false); setReservedRoomId(undefined); setEditingMeeting(null); }}
+        onSuccess={async () => { await loadData(); setToast({ type: 'success', message: editingMeeting ? 'Meeting updated successfully.' : 'Meeting scheduled successfully.' }); }}
+        onError={(message) => setToast({ type: 'error', message })}
         visitors={visitors}
         rooms={rooms}
         users={users}
+        initialRoomId={reservedRoomId}
+        editingMeeting={editingMeeting}
       />
+
+      {selectedMeeting && (
+        <MeetingDetailsModal
+          meeting={selectedMeeting}
+          onClose={() => setSelectedMeeting(null)}
+          onEdit={(meeting) => { setSelectedMeeting(null); setEditingMeeting(meeting); setIsCreateModalOpen(true); }}
+          onDelete={handleDeleteMeeting}
+        />
+      )}
+
+      {toast && (
+        <div role="status" className={`fixed bottom-6 right-6 z-[60] max-w-sm rounded-xl px-4 py-3 text-sm font-medium text-white shadow-xl ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'}`}>
+          {toast.message}
+        </div>
+      )}
 
       {/* Quick Search Modal (⌘ + S) */}
       {isQuickSearchOpen && (

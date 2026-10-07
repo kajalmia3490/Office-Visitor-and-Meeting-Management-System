@@ -2,7 +2,13 @@ import React, { useState } from 'react';
 import { QrCode, CheckCircle, ArrowRight, UserCheck, ShieldCheck, BadgeAlert, Printer } from 'lucide-react';
 import { api } from '../services/api';
 
-export const FastCheckInView: React.FC = () => {
+interface FastCheckInViewProps {
+  onSuccess?: (message: string) => void;
+  onError?: (message: string) => void;
+  onRefresh?: () => void;
+}
+
+export const FastCheckInView: React.FC<FastCheckInViewProps> = ({ onSuccess, onError, onRefresh }) => {
   const [passCode, setPassCode] = useState('PASS-9821');
   const [badgeNumber, setBadgeNumber] = useState('BDG-001');
   const [remarks, setRemarks] = useState('NDA Signed at front desk');
@@ -19,14 +25,12 @@ export const FastCheckInView: React.FC = () => {
     try {
       const res = await api.checkInVisitor(passCode, badgeNumber, remarks);
       setCheckInResult(res);
+      onSuccess?.('Visitor checked in successfully.');
+      onRefresh?.();
     } catch (err: any) {
-      setErrorMessage(err.response?.data?.detail || 'Pass code check-in simulated successfully.');
-      // Provide clean simulated fallback feedback if backend offline
-      setCheckInResult({
-        visitor_name: 'Michael Vance (Demo Guest)',
-        meeting_title: 'Marketing Strategy Meeting',
-        check_in_time: new Date().toLocaleTimeString()
-      });
+      const message = err.response?.data?.detail || 'Unable to check in visitor.';
+      setErrorMessage(message);
+      onError?.(message);
     } finally {
       setLoading(false);
     }
@@ -36,10 +40,13 @@ export const FastCheckInView: React.FC = () => {
     setLoading(true);
     try {
       await api.checkOutVisitor(passCode);
-      alert('Visitor successfully checked out!');
+      onSuccess?.('Visitor checked out successfully.');
       setCheckInResult(null);
+      onRefresh?.();
     } catch (err: any) {
-      alert('Checked out visitor successfully (Simulated).');
+      const message = err.response?.data?.detail || 'Unable to check out visitor.';
+      setErrorMessage(message);
+      onError?.(message);
     } finally {
       setLoading(false);
     }

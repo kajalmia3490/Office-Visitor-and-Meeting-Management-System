@@ -169,6 +169,17 @@ def register_visitor(visitor: schemas.VisitorCreate, db: Session = Depends(get_d
     db.refresh(new_visitor)
     return new_visitor
 
+@app.put("/api/visitors/{visitor_id}", response_model=schemas.VisitorResponse, tags=["Visitors"])
+def update_visitor(visitor_id: int, visitor: schemas.VisitorCreate, db: Session = Depends(get_db)):
+    existing = db.query(models.Visitor).filter(models.Visitor.VisitorId == visitor_id).first()
+    if not existing:
+        raise HTTPException(status_code=404, detail="Visitor not found.")
+    for key, value in visitor.dict().items():
+        setattr(existing, key, value)
+    db.commit()
+    db.refresh(existing)
+    return existing
+
 # --- MEETINGS & CALENDAR ---
 @app.get("/api/meetings", tags=["Meetings"])
 def get_meetings(
@@ -221,6 +232,17 @@ def get_meetings(
 
 @app.post("/api/meetings", tags=["Meetings"])
 def create_meeting(meeting: schemas.MeetingCreate, db: Session = Depends(get_db)):
+    if meeting.EndTime <= meeting.StartTime:
+        raise HTTPException(status_code=400, detail="End time must be after start time.")
+    if meeting.RoomId:
+        conflict = db.query(models.Meeting).filter(
+            models.Meeting.RoomId == meeting.RoomId,
+            models.Meeting.Status != "Cancelled",
+            models.Meeting.StartTime < meeting.EndTime,
+            models.Meeting.EndTime > meeting.StartTime,
+        ).first()
+        if conflict:
+            raise HTTPException(status_code=409, detail=f"Room is already booked for '{conflict.Title}'.")
     new_meeting = models.Meeting(
         Title=meeting.Title,
         Description=meeting.Description,
@@ -259,6 +281,37 @@ def create_meeting(meeting: schemas.MeetingCreate, db: Session = Depends(get_db)
         db.commit()
 
     return {"message": "Meeting scheduled successfully", "MeetingId": new_meeting.MeetingId}
+
+@app.put("/api/meetings/{meeting_id}", tags=["Meetings"])
+def update_meeting(meeting_id: int, meeting: schemas.MeetingCreate, db: Session = Depends(get_db)):
+    existing = db.query(models.Meeting).filter(models.Meeting.MeetingId == meeting_id).first()
+    if not existing:
+        raise HTTPException(status_code=404, detail="Meeting not found.")
+    if meeting.EndTime <= meeting.StartTime:
+        raise HTTPException(status_code=400, detail="End time must be after start time.")
+    if meeting.RoomId:
+        conflict = db.query(models.Meeting).filter(
+            models.Meeting.MeetingId != meeting_id,
+            models.Meeting.RoomId == meeting.RoomId,
+            models.Meeting.Status != "Cancelled",
+            models.Meeting.StartTime < meeting.EndTime,
+            models.Meeting.EndTime > meeting.StartTime,
+        ).first()
+        if conflict:
+            raise HTTPException(status_code=409, detail=f"Room is already booked for '{conflict.Title}'.")
+    for key in ("Title", "Description", "HostId", "RoomId", "MeetingType", "StartTime", "EndTime", "Status", "VideoCallUrl"):
+        setattr(existing, key, getattr(meeting, key))
+    db.commit()
+    return {"message": "Meeting updated successfully", "MeetingId": existing.MeetingId}
+
+@app.delete("/api/meetings/{meeting_id}", tags=["Meetings"])
+def delete_meeting(meeting_id: int, db: Session = Depends(get_db)):
+    existing = db.query(models.Meeting).filter(models.Meeting.MeetingId == meeting_id).first()
+    if not existing:
+        raise HTTPException(status_code=404, detail="Meeting not found.")
+    db.delete(existing)
+    db.commit()
+    return {"message": "Meeting deleted successfully"}
 
 # --- CHECK-IN / CHECK-OUT / PASS VERIFICATION ---
 @app.post("/api/reception/check-in", tags=["Reception & Kiosk"])
@@ -301,6 +354,8 @@ def check_out_visitor(req: schemas.CheckInRequest, db: Session = Depends(get_db)
     attendee = db.query(models.MeetingAttendee).filter(models.MeetingAttendee.PassCode == req.PassCode).first()
     if not attendee:
         raise HTTPException(status_code=404, detail="Invalid Pass Code.")
+    if attendee.Status != "Checked-In":
+        raise HTTPException(status_code=400, detail="Visitor is not currently checked in.")
     
     attendee.Status = "Checked-Out"
     attendee.CheckOutTime = datetime.now()
