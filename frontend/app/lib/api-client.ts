@@ -1,3 +1,4 @@
+// Live API calls use cookie sessions from Better Auth (/api/auth). Demo login is UI-only.
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
 

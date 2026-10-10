@@ -1,4 +1,6 @@
 import { apiRequest } from "./api-client";
+import type { FetchResult } from "./fetch-with-fallback";
+import { mockDashboardData } from "./mock-data/dashboard";
 
 export type DashboardStat = {
   label: string;
@@ -173,9 +175,13 @@ function normalize(role: Role, payload: unknown): DashboardData {
 }
 
 export const dashboardService = {
-  async get(role: Role) {
+  async get(role: Role): Promise<FetchResult<DashboardData>> {
     const endpoint = role === "security" ? "reception" : role;
-    const payload = await apiRequest<unknown>(`/dashboard/${endpoint}`);
-    return normalize(role, payload);
+    try {
+      const payload = await apiRequest<unknown>(`/dashboard/${endpoint}`);
+      return { data: normalize(role, payload), source: "api" };
+    } catch {
+      return { data: mockDashboardData, source: "mock" };
+    }
   },
 };

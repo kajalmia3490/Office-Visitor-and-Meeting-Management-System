@@ -1,0 +1,95 @@
+import type { DashboardData } from "../dashboard-service";
+
+export const mockDashboardData: DashboardData = {
+  stats: [
+    {
+      label: "Total visitors",
+      value: "1,284",
+      change: "+12.5%",
+      trend: "up",
+      icon: "♙",
+      tone: "blue",
+    },
+    {
+      label: "Today’s visits",
+      value: "48",
+      change: "+8.2%",
+      trend: "up",
+      icon: "▣",
+      tone: "violet",
+    },
+    {
+      label: "Active visitors",
+      value: "12",
+      change: "3 waiting",
+      trend: "neutral",
+      icon: "◉",
+      tone: "green",
+    },
+    {
+      label: "Today’s meetings",
+      value: "24",
+      change: "6 upcoming",
+      trend: "neutral",
+      icon: "▤",
+      tone: "orange",
+    },
+  ],
+  recentVisitors: [
+    {
+      name: "Olivia Martin",
+      company: "Acme Corporation",
+      host: "James Wilson",
+      time: "09:15 AM",
+      status: "Checked in",
+      initials: "OM",
+    },
+    {
+      name: "Ethan Miller",
+      company: "Vertex Labs",
+      host: "Sarah Chen",
+      time: "10:00 AM",
+      status: "Expected",
+      initials: "EM",
+    },
+    {
+      name: "Sophia Davis",
+      company: "Northstar Inc.",
+      host: "Michael Brown",
+      time: "10:30 AM",
+      status: "Checked in",
+      initials: "SD",
+    },
+    {
+      name: "Noah Williams",
+      company: "Pioneer Group",
+      host: "Emily Johnson",
+      time: "11:45 AM",
+      status: "Expected",
+      initials: "NW",
+    },
+  ],
+  upcomingMeetings: [
+    {
+      title: "Q4 Product Planning",
+      time: "10:30 AM – 11:30 AM",
+      room: "Atlas · 3rd floor",
+      people: "8 attendees",
+      color: "blue",
+    },
+    {
+      title: "Design review",
+      time: "01:00 PM – 02:00 PM",
+      room: "Focus room 2",
+      people: "4 attendees",
+      color: "violet",
+    },
+    {
+      title: "Partner sync",
+      time: "03:30 PM – 04:00 PM",
+      room: "Boardroom",
+      people: "6 attendees",
+      color: "orange",
+    },
+  ],
+};

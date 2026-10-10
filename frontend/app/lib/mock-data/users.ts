@@ -1,0 +1,32 @@
+export const mockUsers = [
+  {
+    _id: "demo-user-1",
+    name: "Jordan Davis",
+    email: "demo@example.com",
+    employeeId: "EMP-0001",
+    role: "admin",
+    department: { name: "Administration" },
+    isActive: true,
+    lastLoginAt: "2026-10-08T08:00:00.000Z",
+  },
+  {
+    _id: "demo-user-2",
+    name: "Sarah Chen",
+    email: "sarah.chen@acme.com",
+    employeeId: "EMP-0042",
+    role: "employee",
+    department: { name: "Information Technology" },
+    isActive: true,
+    lastLoginAt: "2026-10-07T17:30:00.000Z",
+  },
+  {
+    _id: "demo-user-3",
+    name: "James Wilson",
+    email: "james.wilson@acme.com",
+    employeeId: "EMP-0018",
+    role: "management",
+    department: { name: "Finance" },
+    isActive: true,
+    lastLoginAt: "2026-10-06T09:15:00.000Z",
+  },
+];
