@@ -285,3 +285,7 @@ a.add-button {
     grid-template-columns: 1fr;
   }
 }
+
+.marketing-cta-actions {
+  flex-shrink: 0;
+}
